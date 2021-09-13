@@ -13,6 +13,8 @@ import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
 
+import static com.crazicrafter1.crutils.Util.copy;
+
 public class GithubUpdater {
 
     public static boolean autoUpdate(final JavaPlugin plugin, VersionChecker versionChecker, String author, String githubProject, String jarname) {
@@ -109,22 +111,6 @@ public class GithubUpdater {
             e.printStackTrace();
         }
         return false;
-    }
-
-    private static long copy(InputStream in, OutputStream out) throws IOException {
-        long bytes = 0;
-        byte[] buf = new byte[0x1000];
-        while (true) {
-            int r = in.read(buf);
-            if (r == -1)
-                break;
-            out.write(buf, 0, r);
-            bytes += r;
-        }
-        out.flush();
-        out.close();
-        in.close();
-        return bytes;
     }
 
 }

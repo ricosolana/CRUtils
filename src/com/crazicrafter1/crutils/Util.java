@@ -1,6 +1,7 @@
 package com.crazicrafter1.crutils;
 
 import com.crazicrafter1.crutils.Main;
+import org.apache.commons.lang.Validate;
 import org.bukkit.Color;
 import org.bukkit.DyeColor;
 import org.bukkit.Material;
@@ -11,6 +12,9 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -223,6 +227,52 @@ public class Util {
 
     public static int clamp(int i, int a, int b) {
         return i < a ? a : Math.min(i, b);
+    }
+
+    /**
+     * Does the opposite of ChatColor.translateAlternateColorCodes(...)
+     * (Returns the string with &'s)
+     */
+    public static String toAlternateColorCodes(char altColorChar, String textToTranslate) {
+        Validate.notNull(textToTranslate, "Cannot translate null text");
+        char[] b = textToTranslate.toCharArray();
+
+        for(int i = 0; i < b.length - 1; ++i) {
+            if (b[i] == 167 && "0123456789AaBbCcDdEeFfKkLlMmNnOoRrXx".indexOf(b[i + 1]) > -1) {
+                b[i] = altColorChar;
+                b[i + 1] = Character.toLowerCase(b[i + 1]);
+            }
+        }
+
+        return new String(b);
+    }
+
+    public static List<String> toAlternateColorCodes(char altColorChar, List<String> list) {
+        if (list == null)
+            return null;
+
+        List<String> ret = new ArrayList<>();
+        for (String lore : list) {
+            ret.add(Util.toAlternateColorCodes(altColorChar, lore));
+        }
+
+        return ret;
+    }
+
+    public static long copy(InputStream in, OutputStream out) throws IOException {
+        long bytes = 0;
+        byte[] buf = new byte[0x1000];
+        while (true) {
+            int r = in.read(buf);
+            if (r == -1)
+                break;
+            out.write(buf, 0, r);
+            bytes += r;
+        }
+        out.flush();
+        out.close();
+        in.close();
+        return bytes;
     }
 
     /**

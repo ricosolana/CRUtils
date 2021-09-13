@@ -5,6 +5,7 @@ import org.bukkit.Bukkit;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 
 public final class ReflectionUtil {
 
@@ -74,6 +75,26 @@ public final class ReflectionUtil {
     public static Constructor<?> getConstructor(Class<?> clazz, Class<?>... params) {
         try {
             return clazz.getConstructor(params);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Construct a new object where args are Objects to be evaluated at runtime
+     * constructor will be loaded by gathering the class type of each arg
+     * @args notnull array
+     */
+    public static Object invokeConstructor(Class<?> clazz, Object... args) {
+        try {
+            ArrayList<Class<?>> params = new ArrayList<>(args.length);
+            for (Object arg : args) {
+                params.add(arg.getClass());
+            }
+            Constructor<?> constructor = clazz.getConstructor(params.toArray(new Class<?>[]{}));
+
+            constructor.setAccessible(true);
+            return constructor.newInstance(args);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
