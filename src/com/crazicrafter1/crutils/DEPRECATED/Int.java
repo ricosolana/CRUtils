@@ -1,4 +1,4 @@
-package com.crazicrafter1.crutils;
+package com.crazicrafter1.crutils.DEPRECATED;
 
 public class Int {
 

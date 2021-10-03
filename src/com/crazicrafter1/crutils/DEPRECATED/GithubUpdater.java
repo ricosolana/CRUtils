@@ -1,9 +1,10 @@
-package com.crazicrafter1.crutils;
+package com.crazicrafter1.crutils.DEPRECATED;
 
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
+import com.crazicrafter1.crutils.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.plugin.InvalidDescriptionException;
+import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -16,8 +17,7 @@ import java.nio.charset.StandardCharsets;
 import static com.crazicrafter1.crutils.Util.copy;
 
 public class GithubUpdater {
-
-    public static boolean autoUpdate(final JavaPlugin plugin, VersionChecker versionChecker, String author, String githubProject, String jarname) {
+    public static boolean autoUpdate(final JavaPlugin otherPlugin, VersionChecker versionChecker, String author, String githubProject, String jarname) {
         try {
 
             String tag = "";
@@ -38,7 +38,7 @@ public class GithubUpdater {
                     tag = versionChecker.getLatestVersion();
                 else return false;
             } catch (Exception e1) {
-                Main.getInstance().error("An error occurred while updating " + plugin.getName());
+                Main.getInstance().error("An error occurred while updating " + otherPlugin.getName());
 
                 if (Main.debug)
                     e1.printStackTrace();
@@ -48,16 +48,15 @@ public class GithubUpdater {
 
             latestVersion = Integer.parseInt(tag.replaceAll("\\.", ""));
 
-            final int myVersion = Integer.parseInt(plugin.getDescription().getVersion().replaceAll("\\.", ""));
+            final int myVersion = Integer.parseInt(otherPlugin.getDescription().getVersion().replaceAll("\\.", ""));
 
             s = "https://github.com/" + author + "/" + githubProject + "/releases/download/"
                     + tag + "/" + jarname;
             final URL download = new URL(s);
 
             if (latestVersion > myVersion) {
-                Main.getInstance().important(ChatColor.GREEN + "Found a new version of " + ChatColor.GOLD
-                                + plugin.getDescription().getName() + ": " + ChatColor.WHITE + tag
-                                + ChatColor.LIGHT_PURPLE + " downloading now!");
+                Main.getInstance().important("Found a new version of " + ChatColor.GOLD
+                                + otherPlugin.getName() + "( " + tag + ")");
 
                 new BukkitRunnable() {
                     @Override
@@ -67,17 +66,24 @@ public class GithubUpdater {
 
                             File pluginFile;
 
+                            //pluginFile = new File(URLDecoder.decode(
+                            //        this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath(),
+                            //        StandardCharsets.UTF_8));
+//otherPlugin.getPluginLoader().getPluginDescription()
+
+
+
                             pluginFile = new File(URLDecoder.decode(
-                                    this.getClass().getProtectionDomain().getCodeSource().getLocation().getPath(),
+                                    otherPlugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath(),
                                     StandardCharsets.UTF_8));
 
-                            Main.getInstance().info("path: " + pluginFile.getAbsolutePath());
+                            //Main.getInstance().info("path: " + pluginFile.getAbsolutePath());
 
-                            if (true)
-                                return;
+                            //if (true)
+                            //    return;
 
                             // Copy the current plugin to 'plugin-backup.jar'
-                            File tempInCaseSomethingGoesWrong = new File(plugin.getName() + "-backup.jar");
+                            File tempInCaseSomethingGoesWrong = new File(otherPlugin.getName() + "-backup.jar");
                             copy(new FileInputStream(pluginFile), new FileOutputStream(tempInCaseSomethingGoesWrong));
 
 
@@ -98,13 +104,40 @@ public class GithubUpdater {
                                 tempInCaseSomethingGoesWrong.delete();
                             }
 
-                            //Bukkit.getPluginManager().disablePlugin(plugin);
+                            new BukkitRunnable() {
+                                @Override
+                                public void run() {
+                                    Bukkit.getPluginManager().disablePlugin(otherPlugin);
+
+
+
+                                    new BukkitRunnable() {
+                                        @Override
+                                        public void run() {
+                                            //Bukkit.getPluginManager().enablePlugin(otherPlugin);
+                                            try {
+                                                Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(pluginFile));
+                                            } catch (InvalidPluginException | InvalidDescriptionException e) {
+                                                e.printStackTrace();
+                                            }
+                                        }
+                                    }.runTaskLater(Main.getInstance(), 3 * 20);
+
+
+
+                                }
+                            }.run();
+
+
 
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
                     }
-                }.runTaskAsynchronously(plugin);
+                }.runTaskLaterAsynchronously(otherPlugin, 3 * 30);
+
+                Main.getInstance().important("Updating " + otherPlugin.getName() + " in 3 seconds");
+
                 return true;
             }
         } catch (IOException e) {

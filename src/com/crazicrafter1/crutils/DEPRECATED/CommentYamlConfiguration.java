@@ -1,4 +1,4 @@
-package com.crazicrafter1.crutils;
+package com.crazicrafter1.crutils.DEPRECATED;
 
 
 import com.google.common.base.Charsets;
@@ -13,6 +13,11 @@ import java.io.*;
 import java.util.Map;
 import java.util.logging.Level;
 
+/**
+ * Doesn't really work correctly
+ * Comments not in correct relative spot
+ * Random spaces all condensed
+ */
 public class CommentYamlConfiguration extends YamlConfiguration {
 
     private Map<Integer, String> comments = Maps.newHashMap();
