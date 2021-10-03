@@ -1,6 +1,7 @@
 package com.crazicrafter1.crutils;
 
 import org.bukkit.Bukkit;
+import org.bukkit.inventory.ItemStack;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -9,11 +10,36 @@ import java.util.ArrayList;
 
 public final class ReflectionUtil {
 
-    private final static String CRAFTBUKKIT = Bukkit.getServer().getClass().getPackage().getName();
-    private final static String NMS = "net.minecraft.server." + CRAFTBUKKIT.substring(23);
+    private final static String OBC = Bukkit.getServer().getClass().getPackage().getName();
+    private final static String NM;
+
+    // org\bukkit\craftbukkit\v1_8_R3\
+    private final static String VERSION = OBC.substring(OBC.lastIndexOf(".")+1);
+
+    static {
+        // it appears that CrashReport path remains consistent, in the root NM(S) package
+        // so get it
+
+        // net\minecraft\server\v1_8_R3\CrashReport
+        // net\minecraft\server\v1_14_R1\CrashReport
+        // net\minecraft\CrashReport
+        Class<?> crashReport;
+        try {
+            crashReport = ReflectionUtil.getCanonicalClass(
+                    "net.minecraft.server." + VERSION + ".CrashReport");
+
+        } catch (Exception e) {
+            crashReport = ReflectionUtil.getCanonicalClass("net.minecraft.CrashReport");
+        }
+
+        NM = crashReport.getPackage().getName();
+    }
+
+    // need to get the nms path from a relative object
 
     public static boolean isOldVersion() {
-        String v = CRAFTBUKKIT.substring(23);
+        String v = OBC.substring(23);
+        //float f = Float.valueOf(v.replaceAll("_", "."))
         return !v.contains("1_17");
     }
 
@@ -30,11 +56,11 @@ public final class ReflectionUtil {
     }
 
     public static Class<?> getCraftClass(String name) {
-        return getCanonicalClass(CRAFTBUKKIT + "." + name);
+        return getCanonicalClass(OBC + "." + name);
     }
 
-    public static Class<?> getNMSClass(String name) {
-        return getCanonicalClass(NMS + "." + name);
+    public static Class<?> getNMClass(String name) {
+        return getCanonicalClass(NM + "." + name);
     }
 
     public static Method getMethod(Class<?> clazz, String method, Class<?>... params) {

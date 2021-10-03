@@ -1,10 +1,7 @@
 package com.crazicrafter1.crutils;
 
-import com.crazicrafter1.crutils.Main;
 import org.apache.commons.lang.Validate;
 import org.bukkit.Color;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -23,7 +20,7 @@ import java.util.*;
 public class Util {
 
     public static boolean inRange(int i, int min, int max) {
-        return (i <= max && i >= min);
+        return i >= min && i <= max;
     }
 
     public static void giveItemToPlayer(Player p, ItemStack item) {
@@ -42,35 +39,6 @@ public class Util {
                 }
             }
         }.runTaskLater(Main.getInstance(), 1);
-    }
-
-    private static HashSet<String> dyes = new HashSet<>(Arrays.asList("BLACK", "BLUE", "BROWN", "CYAN", "GRAY", "GREEN", "LIGHT_GRAY", "LIME", "MAGENTA", "ORANGE", "PINK", "PURPLE", "RED", "WHITE", "YELLOW"));
-
-    /**
-     * Untested, needs testing
-     */
-    @Deprecated
-    private static ItemStack getDyeColoredItem(String name) {
-        for (String dye : dyes) {
-
-            if (name.contains(dye)) {
-
-                // then get
-                DyeColor dyeColor = DyeColor.valueOf(dye);
-
-                String itemName = name.replaceAll(dye, "");
-
-                if (itemName.startsWith("_")) itemName = itemName.replaceFirst("_", "");
-
-                Material material = Material.matchMaterial(itemName);
-
-                return new ItemStack(material, 1, dyeColor.getDyeData());
-
-            }
-
-        }
-
-        return null;
     }
 
     public static Color matchColor(String color) {
@@ -128,15 +96,6 @@ public class Util {
 
     public static int sqDist(int x1, int y1, int x2, int y2) {
         return (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2);
-    }
-
-    public static boolean toInt(String s, Int wrapper) {
-        try {
-            wrapper.value = Integer.parseInt(s);
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 
     public static Enchantment matchEnchant(String enchant) {

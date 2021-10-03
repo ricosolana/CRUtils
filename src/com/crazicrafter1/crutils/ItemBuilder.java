@@ -4,11 +4,13 @@ import com.crazicrafter1.crutils.refl.GameProfileMirror;
 import com.crazicrafter1.crutils.refl.PropertyMirror;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
+import org.bukkit.DyeColor;
 import org.bukkit.Material;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
+import org.bukkit.potion.PotionEffect;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
@@ -27,9 +29,17 @@ public class ItemBuilder {
         this.itemStack = new ItemStack(itemStack);
     }
 
-    // lexicals
+    /**
+     *
+     * @param itemStack Merge name and lore of itemStack to this.itemStack
+     * @return
+     */
     public ItemBuilder mergeLexicals(ItemStack itemStack) {
-        return this.name(itemStack.getItemMeta().getDisplayName()).lore(itemStack.getItemMeta().getLore());
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta != null) {
+            return this.name(itemStack.getItemMeta().getDisplayName()).lore(itemStack.getItemMeta().getLore());
+        }
+        return this;
     }
 
     private static Object makeProfile(String b64) {
@@ -45,6 +55,24 @@ public class ItemBuilder {
         return profile.getInstance();
     }
 
+    public ItemBuilder effect(PotionEffect effect) {
+        if (itemStack.getItemMeta() instanceof PotionMeta meta) {
+            meta.addCustomEffect(effect, true);
+            itemStack.setItemMeta(meta);
+        }
+        return this;
+    }
+
+    public ItemBuilder enchant(Enchantment enchantment, int level) {
+        // Enchanted book
+        if (itemStack.getItemMeta() instanceof EnchantmentStorageMeta meta) {
+            meta.addStoredEnchant(enchantment, level, true);
+            itemStack.setItemMeta(meta);
+        } else {
+            itemStack.addUnsafeEnchantment(enchantment, level);
+        }
+        return this;
+    }
 
     public ItemBuilder skull(String base64) {
         SkullMeta meta = (SkullMeta) itemStack.getItemMeta();
@@ -97,6 +125,8 @@ public class ItemBuilder {
      @param lore the lore
      */
     public ItemBuilder lore(String lore) {
+        if (lore == null)
+            return this;
         return lore(lore.split("\n"));
     }
 
@@ -170,12 +200,6 @@ public class ItemBuilder {
         return this;
     }
 
-    public ItemBuilder enchant(Enchantment e, int level) {
-        itemStack.addUnsafeEnchantment(e, level);
-
-        return this;
-    }
-
     public ItemBuilder hideFlags(ItemFlag ... flags) {
         ItemMeta meta = itemStack.getItemMeta();
         meta.addItemFlags(flags);
@@ -183,21 +207,14 @@ public class ItemBuilder {
         return this;
     }
 
-    /**
-     * Doesn't work correctly in 1.17
-     */
-    @Deprecated
     public ItemBuilder glow(boolean state) {
-
-        if (true)
-            return this;
-
-        if (!state) return this;
-        //itemStack.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
-        ItemMeta meta = itemStack.getItemMeta();
-        meta.addEnchant(Enchantment.DAMAGE_ALL, 1, false);
-        meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
-        itemStack.setItemMeta(meta);
+        if (state) {
+            //itemStack.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);
+            ItemMeta meta = itemStack.getItemMeta();
+            meta.addEnchant(Enchantment.DAMAGE_ALL, 1, false);
+            meta.addItemFlags(ItemFlag.HIDE_ENCHANTS);
+            itemStack.setItemMeta(meta);
+        }
         return this;
     }
 
@@ -225,6 +242,12 @@ public class ItemBuilder {
         return new ItemBuilder(CraftItemStack.asCraftMirror(nmsStack));
     }
      */
+
+    public ItemBuilder dye(Color color) {
+        LeatherArmorMeta meta = (LeatherArmorMeta) itemStack.getItemMeta();
+        meta.setColor(color);
+        return this;
+    }
 
     public ItemStack toItem() {
         return itemStack;
