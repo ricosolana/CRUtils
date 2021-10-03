@@ -2,13 +2,16 @@ package com.crazicrafter1.crutils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
+
+import java.util.Map;
 
 public class Main extends JavaPlugin {
 
-    private final String prefix = ChatColor.GOLD + this.getName() + " : ";
-    private FileConfiguration config = null;
+    public final String prefix = ChatColor.translateAlternateColorCodes('&',
+            "&8[&f&lCRUtils&r&8] ");
 
     public static boolean debug;
 
@@ -19,24 +22,29 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        instance = this;
+        Main.instance = this;
 
-        String v = Bukkit.getVersion();
-
-        boolean valid = v.contains("1.17");
-
-        if (!valid) {
+        if (ReflectionUtil.isOldVersion()) {
             error("Works only on 1.17+");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
 
         this.saveDefaultConfig();
-        this.config = this.getConfig();
+        debug = this.getConfig().getBoolean("debug");
 
-        debug = config.getBoolean("debug");
+        // register checker
+        new Updater(this, "PeriodicSeizures", "Crutils", false);
 
-        this.info("Loaded successfully.");
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                for (Map.Entry<String, Updater> entry : Updater.updates.entrySet()) {
+                    entry.getValue().updateFromGithub();
+                }
+            }
+        }.runTaskTimerAsynchronously(Main.getInstance(), 1, 3600 * 24 * 20);
+
     }
 
     public void info(String s) {
