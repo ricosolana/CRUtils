@@ -45,6 +45,7 @@ public class Main extends JavaPlugin {
             }
         }.runTaskTimerAsynchronously(Main.getInstance(), 1, 3600 * 24 * 20);
 
+        new EventListener(this);
     }
 
     public void info(String s) {
