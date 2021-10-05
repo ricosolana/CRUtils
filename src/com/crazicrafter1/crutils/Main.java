@@ -24,8 +24,8 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         Main.instance = this;
 
-        if (ReflectionUtil.isOldVersion()) {
-            error("Works only on 1.17+");
+        if (ReflectionUtil.isVersion("1_17_1")) {
+            error("Works only on 1.17.1 (latest minecraft version)");
             Bukkit.getPluginManager().disablePlugin(this);
             return;
         }
@@ -53,7 +53,7 @@ public class Main extends JavaPlugin {
     }
 
     public void important(String s) {
-        Bukkit.getConsoleSender().sendMessage(prefix + ChatColor.DARK_PURPLE + s);
+        Bukkit.getConsoleSender().sendMessage(prefix + ChatColor.LIGHT_PURPLE + s);
     }
 
     public void warn(String s) {

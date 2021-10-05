@@ -24,7 +24,7 @@ public class Updater {
     private final String githubProject;
     private final boolean doUpdates;
     private String latestVersion;
-    private URL latestdownloadUrl;
+    private URL latestDownloadUrl;
 
     public Updater(Plugin plugin, String githubAuthor, String githubProject, boolean doUpdates) {
         this.pluginName = plugin.getName();
@@ -61,7 +61,11 @@ public class Updater {
         is.close();
 
         latestVersion = download.toString().substring(download.toString().lastIndexOf('/') + 1);
-        latestdownloadUrl = new URL(download.toString() + "/" + pluginName + ".jar");
+
+        String s = "https://github.com/" + githubAuthor + "/" +
+                githubProject + "/releases/download/" + latestVersion + "/" + pluginName + ".jar";
+
+        latestDownloadUrl = new URL(s);
 
         //Main.getInstance().debug(download.toString());
         //Main.getInstance().debug(latestVersion);
@@ -74,6 +78,10 @@ public class Updater {
                 Main.getInstance().info(pluginName + " is-up-to date");
                 return;
             }
+
+            // print everything
+            Main.getInstance().debug("latestVersion: " + latestVersion);
+            Main.getInstance().debug("latestDownloadUrl: " + latestDownloadUrl);
 
             if (!doUpdates) {
                 Main.getInstance().important("A new update is available for " + pluginName + " (" + latestVersion + "), please consider installing it!");
@@ -104,7 +112,7 @@ public class Updater {
             /*
              * Start download
              */
-            InputStream in = latestdownloadUrl.openStream();
+            InputStream in = latestDownloadUrl.openStream();
             copy(in, new FileOutputStream(pluginFile));
 
             if (pluginFile.length() < 1000) {

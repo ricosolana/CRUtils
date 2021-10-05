@@ -32,11 +32,14 @@ public class EventListener implements Listener {
 
             // dispatch a normal click event, because most plugins are probably not taking advantage
             // of this little weird annoying quirk
-            Bukkit.getPluginManager().callEvent(
-                    new InventoryClickEvent(e.getView(), e.getView().getSlotType(rawSlot),
-                            rawSlot, clickType, InventoryAction.PLACE_ALL));
-
             e.setCancelled(false);
+
+            InventoryClickEvent event = new InventoryClickEvent(e.getView(), e.getView().getSlotType(rawSlot),
+                    rawSlot, clickType, InventoryAction.PLACE_ALL);
+            Bukkit.getPluginManager().callEvent(event);
+
+            if (event.isCancelled())
+                e.setCancelled(true);
         }
     }
 

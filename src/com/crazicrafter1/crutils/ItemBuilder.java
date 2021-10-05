@@ -2,10 +2,7 @@ package com.crazicrafter1.crutils;
 
 import com.crazicrafter1.crutils.refl.GameProfileMirror;
 import com.crazicrafter1.crutils.refl.PropertyMirror;
-import org.bukkit.ChatColor;
-import org.bukkit.Color;
-import org.bukkit.DyeColor;
-import org.bukkit.Material;
+import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -246,6 +243,14 @@ public class ItemBuilder {
     public ItemBuilder dye(Color color) {
         LeatherArmorMeta meta = (LeatherArmorMeta) itemStack.getItemMeta();
         meta.setColor(color);
+        itemStack.setItemMeta(meta);
+        return this;
+    }
+
+    public ItemBuilder fireworkEffect(FireworkEffect effect) {
+        FireworkEffectMeta meta = (FireworkEffectMeta) itemStack.getItemMeta();
+        meta.setEffect(effect);
+        itemStack.setItemMeta(meta);
         return this;
     }
 

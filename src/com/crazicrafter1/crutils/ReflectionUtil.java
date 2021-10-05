@@ -17,8 +17,7 @@ public final class ReflectionUtil {
     private final static String VERSION = OBC.substring(OBC.lastIndexOf(".")+1);
 
     static {
-        // it appears that CrashReport path remains consistent, in the root NM(S) package
-        // so get it
+        // CrashReport remains consistent in root across versions
 
         // net\minecraft\server\v1_8_R3\CrashReport
         // net\minecraft\server\v1_14_R1\CrashReport
@@ -37,10 +36,14 @@ public final class ReflectionUtil {
 
     // need to get the nms path from a relative object
 
-    public static boolean isOldVersion() {
-        String v = OBC.substring(23);
-        //float f = Float.valueOf(v.replaceAll("_", "."))
-        return !v.contains("1_17");
+    //public static boolean isOldVersion() {
+    //    String v = OBC.substring(23);
+    //    //float f = Float.valueOf(v.replaceAll("_", "."))
+    //    return !v.contains("1_17");
+    //}
+
+    public static boolean isVersion(String v) {
+        return OBC.contains(v);
     }
 
     // Not instantiable
