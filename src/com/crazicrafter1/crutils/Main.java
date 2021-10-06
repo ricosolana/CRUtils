@@ -34,7 +34,7 @@ public class Main extends JavaPlugin {
         debug = this.getConfig().getBoolean("debug");
 
         // register checker
-        new Updater(this, "PeriodicSeizures", "Crutils", false);
+        new Updater(this, "PeriodicSeizures", "CRUtils", false);
 
         new BukkitRunnable() {
             @Override

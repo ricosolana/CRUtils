@@ -17,6 +17,15 @@ import static com.crazicrafter1.crutils.Util.copy;
 
 public class Updater {
 
+    // outdated
+    // up-to-date
+    // dev, unreleased version
+    enum ReleaseInfo {
+        OUTDATED,
+        UP_TO_DATE,
+        UNRELEASED
+    }
+
     static ConcurrentHashMap<String, Updater> updates = new ConcurrentHashMap<>();
 
     private final String pluginName;
@@ -26,6 +35,11 @@ public class Updater {
     private String latestVersion;
     private URL latestDownloadUrl;
 
+    /**
+     * TODO
+     *  since this updater is Github based, add options for download target
+     *  for flexibility, name of target might differ across versions
+     */
     public Updater(Plugin plugin, String githubAuthor, String githubProject, boolean doUpdates) {
         this.pluginName = plugin.getName();
         this.githubAuthor = githubAuthor;
@@ -43,10 +57,16 @@ public class Updater {
         return getPlugin().getDescription().getVersion();
     }
 
-    boolean isOutdated() throws IOException {
+    ReleaseInfo getCrossVersioning() throws IOException {
         checkVersions();
-        return Integer.parseInt(getCurrentVersion().replaceAll("\\.", "")) <
-                Integer.parseInt(latestVersion.replaceAll("\\.", ""));
+        int current = Integer.parseInt(getCurrentVersion().replaceAll("\\.", ""));
+        int latest =  Integer.parseInt(latestVersion.replaceAll("\\.", ""));
+
+        if (current < latest)
+            return ReleaseInfo.OUTDATED;
+        else if (current == latest)
+            return ReleaseInfo.UP_TO_DATE;
+        else return ReleaseInfo.UNRELEASED;
     }
 
     void checkVersions() throws IOException {
@@ -60,22 +80,25 @@ public class Updater {
         URL download = con.getURL();
         is.close();
 
+        // numeric, ie 3.1.4
         latestVersion = download.toString().substring(download.toString().lastIndexOf('/') + 1);
 
+        // download url
         String s = "https://github.com/" + githubAuthor + "/" +
                 githubProject + "/releases/download/" + latestVersion + "/" + pluginName + ".jar";
 
         latestDownloadUrl = new URL(s);
 
-        //Main.getInstance().debug(download.toString());
-        //Main.getInstance().debug(latestVersion);
-        //Main.getInstance().debug(latestdownloadUrl.toString());
+        Main.getInstance().debug(download.toString());
+        Main.getInstance().debug(latestVersion);
+        Main.getInstance().debug(latestDownloadUrl.toString());
     }
 
     void updateFromGithub() {
         try {
-            if (!isOutdated()) {
-                Main.getInstance().info(pluginName + " is-up-to date");
+            ReleaseInfo releaseInfo;
+            if ((releaseInfo = getCrossVersioning()) != ReleaseInfo.OUTDATED) {
+                Main.getInstance().info(pluginName + " is " + releaseInfo.name().toLowerCase());
                 return;
             }
 
@@ -84,7 +107,8 @@ public class Updater {
             Main.getInstance().debug("latestDownloadUrl: " + latestDownloadUrl);
 
             if (!doUpdates) {
-                Main.getInstance().important("A new update is available for " + pluginName + " (" + latestVersion + "), please consider installing it!");
+                Main.getInstance().important(
+                        String.format("A new update is available for %s (%s), please consider installing it!", pluginName, latestVersion);
                 return;
             }
 
@@ -119,6 +143,7 @@ public class Updater {
                 // Fallback contingencies
                 copy(new FileInputStream(backupFile),
                         new FileOutputStream(pluginFile));
+                return;
             } else {
                 // All is fine, delete the backup
                 backupFile.delete();
