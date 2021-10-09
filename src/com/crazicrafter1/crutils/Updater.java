@@ -108,7 +108,7 @@ public class Updater {
 
             if (!doUpdates) {
                 Main.getInstance().important(
-                        String.format("A new update is available for %s (%s), please consider installing it!", pluginName, latestVersion);
+                        String.format("A new update is available for %s (%s), please consider installing it!", pluginName, latestVersion));
                 return;
             }
 
