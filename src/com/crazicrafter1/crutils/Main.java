@@ -24,11 +24,11 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         Main.instance = this;
 
-        if (ReflectionUtil.isVersion("1_17_1")) {
-            error("Works only on 1.17.1 (latest minecraft version)");
-            Bukkit.getPluginManager().disablePlugin(this);
-            return;
-        }
+        //if (ReflectionUtil.isVersion("1_17_1")) {
+        //    error("Works only on 1.17.1 (latest minecraft version)");
+        //    Bukkit.getPluginManager().disablePlugin(this);
+        //    return;
+        //}
 
         this.saveDefaultConfig();
         debug = this.getConfig().getBoolean("debug");
