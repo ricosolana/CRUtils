@@ -41,10 +41,13 @@ public class Util {
         }.runTaskLater(Main.getInstance(), 1);
     }
 
+    /*
     public static Color matchColor(String color) {
         // Java 16 magic!
-        return switch (color.toUpperCase()) {
-            case "BLUE" -> Color.BLUE;
+
+
+        switch (color.toUpperCase()) {
+            case "BLUE": return Color.BLUE;
             case "RED" -> Color.RED;
             case "WHITE" -> Color.WHITE;
             case "GRAY" -> Color.GRAY;
@@ -64,6 +67,7 @@ public class Util {
             default -> null;
         };
     }
+     */
 
     public static int randomRange(int min, int max) {
         return min + (int)(Math.random() * ((max - min) + 1));
@@ -98,6 +102,7 @@ public class Util {
         return (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2);
     }
 
+    /*
     public static Enchantment matchEnchant(String enchant) {
         String e = enchant.toUpperCase().replace(" ", "_");
 
@@ -183,6 +188,7 @@ public class Util {
             default -> null;
         };
     }
+     */
 
     public static int clamp(int i, int a, int b) {
         return i < a ? a : Math.min(i, b);

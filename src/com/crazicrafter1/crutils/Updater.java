@@ -123,7 +123,7 @@ public class Updater {
              */
             File pluginFile = new File(URLDecoder.decode(
                     plugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath(),
-                    StandardCharsets.UTF_8));
+                    StandardCharsets.UTF_8.toString()));
 
             // Copy plugin contents to back up
             File backupFile = new File(plugin.getName() + "-backup.jar");

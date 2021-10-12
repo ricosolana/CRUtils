@@ -52,7 +52,8 @@ public class ItemBuilder {
     }
 
     public ItemBuilder effect(PotionEffect effect) {
-        if (itemStack.getItemMeta() instanceof PotionMeta meta) {
+        if (itemStack.getItemMeta() instanceof PotionMeta) {
+            PotionMeta meta = (PotionMeta) itemStack.getItemMeta();
             meta.addCustomEffect(effect, true);
             itemStack.setItemMeta(meta);
         }
@@ -61,7 +62,8 @@ public class ItemBuilder {
 
     public ItemBuilder enchant(Enchantment enchantment, int level) {
         // Enchanted book
-        if (itemStack.getItemMeta() instanceof EnchantmentStorageMeta meta) {
+        if (itemStack.getItemMeta() instanceof EnchantmentStorageMeta) {
+            EnchantmentStorageMeta meta = (EnchantmentStorageMeta) itemStack.getItemMeta();
             meta.addStoredEnchant(enchantment, level, true);
             itemStack.setItemMeta(meta);
         } else {
