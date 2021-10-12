@@ -68,6 +68,7 @@ public final class ReflectionUtil {
 
     public static Method getMethod(Class<?> clazz, String method, Class<?>... params) {
         try {
+            //System.out.println("Trying to find method: " + method);
             return clazz.getDeclaredMethod(method, params);
         } catch (Exception e) {
             throw new IllegalArgumentException("Cannot find " + method, e);
@@ -154,5 +155,7 @@ public final class ReflectionUtil {
             throw new RuntimeException(e);
         }
     }
+
+    //public static Field getFieldByType()
 
 }

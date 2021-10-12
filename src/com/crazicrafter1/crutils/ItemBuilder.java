@@ -1,7 +1,6 @@
 package com.crazicrafter1.crutils;
 
-import com.crazicrafter1.crutils.refl.GameProfileMirror;
-import com.crazicrafter1.crutils.refl.PropertyMirror;
+import com.crazicrafter1.crutils.refl.*;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.ItemFlag;
@@ -136,7 +135,7 @@ public class ItemBuilder {
             ItemMeta meta = itemStack.getItemMeta();
 
             for (int i = 0; i < lore.size(); i++)
-                lore.set(i, ChatColor.translateAlternateColorCodes('&', "&r" + lore.get(i)));
+                lore.set(i, ChatColor.translateAlternateColorCodes('&', "&7" + lore.get(i)));
 
             meta.setLore(lore);
 
@@ -216,29 +215,58 @@ public class ItemBuilder {
     }
 
     /*
-    public ItemBuilder fast(){
-        ItemStack item = new ItemStack(itemStack);
-
-        net.minecraft.server.v1_14_R1.ItemStack nmsStack = CraftItemStack.asNMSCopy(item);
+    public ItemBuilder fast() {
+        net.minecraft.world.item.ItemStack nmsStack = CraftItemStack.asNMSCopy(itemStack);
 
         NBTTagCompound nbt = nmsStack.hasTag() ? nmsStack.getTag() : new NBTTagCompound();
 
-        NBTTagList nbtTags = new NBTTagList();
         NBTTagCompound speed = new NBTTagCompound();
 
-        speed.set("AttributeName", new NBTTagString("generic.attackSpeed"));
-        speed.set("Name", new NBTTagString("Blah"));
-        speed.set("Amount", new NBTTagDouble(9.8));
-        speed.set("Operation", new NBTTagInt(0));
-        speed.set("UUIDLeast", new NBTTagInt(1));
-        speed.set("UUIDMost", new NBTTagInt(1));
+        speed.setString("AttributeName", "generic.attackSpeed");
+        speed.setString("Name", "Blah");
+        speed.setDouble("Amount", 9.8);
+        speed.setInt("Operation", 0);
+        speed.setInt("UUIDLeast", 1);
+        speed.setInt("UUIDMost", 1);
 
+        NBTTagList nbtTags = new NBTTagList();
         nbtTags.add(speed);
         nbt.set("AttributeModifiers", nbtTags);
         nmsStack.setTag(nbt);
         return new ItemBuilder(CraftItemStack.asCraftMirror(nmsStack));
     }
      */
+
+    //public ItemBuilder setNBT(String key, NBTBaseMirror nbtBase) {
+    //    return
+    //}
+
+    /**
+     * Cool concept, and work as intended,
+     * but item does like equivalent to no damage on hit
+     * @return
+     */
+    @Deprecated
+    public ItemBuilder fast() {
+        ItemStackMirror nmsStack = new ItemStackMirror(itemStack);
+
+        NBTTagCompoundMirror nbt = nmsStack.getOrCreateTag();
+
+        NBTTagCompoundMirror speed = new NBTTagCompoundMirror();
+
+        speed.setString("AttributeName", "generic.attackSpeed");
+        speed.setString("Name", "Blah");
+        speed.setDouble("Amount", 9.8);
+        speed.setInt("Operation", 0);
+        speed.setInt("UUIDLeast", 1);
+        speed.setInt("UUIDMost", 1);
+
+        NBTTagListMirror nbtTags = new NBTTagListMirror();
+        nbtTags.add(speed);
+        nbt.set("AttributeModifiers", nbtTags);
+        nmsStack.setTag(nbt);
+        return new ItemBuilder(nmsStack.getItemStack());
+    }
 
     public ItemBuilder dye(Color color) {
         LeatherArmorMeta meta = (LeatherArmorMeta) itemStack.getItemMeta();

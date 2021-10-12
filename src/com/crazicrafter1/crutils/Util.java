@@ -99,7 +99,7 @@ public class Util {
     }
 
     public static Enchantment matchEnchant(String enchant) {
-        String e = enchant.toUpperCase().replaceAll(" ", "_");
+        String e = enchant.toUpperCase().replace(" ", "_");
 
         return switch (e) {
             case "ARROW_DAMAGE", "POWER" -> Enchantment.ARROW_DAMAGE;
@@ -145,7 +145,7 @@ public class Util {
     }
 
     public static PotionEffectType matchPotionEffectType(String effect) {
-        String e = effect.toUpperCase().replaceAll(" ", "_");
+        String e = effect.toUpperCase().replace(" ", "_");
 
         return switch (e) {
             case "ABSORPTION" -> PotionEffectType.ABSORPTION;

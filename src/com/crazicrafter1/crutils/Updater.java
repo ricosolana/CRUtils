@@ -59,8 +59,8 @@ public class Updater {
 
     ReleaseInfo getCrossVersioning() throws IOException {
         checkVersions();
-        int current = Integer.parseInt(getCurrentVersion().replaceAll("\\.", ""));
-        int latest =  Integer.parseInt(latestVersion.replaceAll("\\.", ""));
+        int current = Integer.parseInt(getCurrentVersion().replace(".", ""));
+        int latest =  Integer.parseInt(latestVersion.replace(".", ""));
 
         if (current < latest)
             return ReleaseInfo.OUTDATED;

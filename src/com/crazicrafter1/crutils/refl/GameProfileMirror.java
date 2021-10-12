@@ -16,7 +16,7 @@ public class GameProfileMirror {
 
     private final static Method putMethod = ReflectionUtil.getMethod(propertyMapField.getType().getSuperclass(), "put", Object.class, Object.class);
 
-    private Object gameProfileInstance;
+    private final Object gameProfileInstance;
 
     public GameProfileMirror(UUID uuid, String string) {
         this.gameProfileInstance = ReflectionUtil.invokeConstructor(constructor, uuid, string);
