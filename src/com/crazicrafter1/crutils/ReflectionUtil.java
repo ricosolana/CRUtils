@@ -42,8 +42,14 @@ public final class ReflectionUtil {
     //    return !v.contains("1_17");
     //}
 
+    // org.bukkit.craftbukkit.v1_17_R1
     public static boolean isVersion(String v) {
         return OBC.contains(v);
+    }
+
+    public static boolean isAtLeastVersion(String v) {
+        return Integer.parseInt(OBC.substring(24).replace("_", "").replaceAll("R[0-9]", "")) >=
+                Integer.parseInt(v.replace("_", ""));
     }
 
     // Not instantiable

@@ -33,7 +33,7 @@ public class ItemBuilder {
     public ItemBuilder mergeLexicals(ItemStack itemStack) {
         ItemMeta meta = itemStack.getItemMeta();
         if (meta != null) {
-            return this.name(itemStack.getItemMeta().getDisplayName()).lore(itemStack.getItemMeta().getLore());
+            return this.name(itemStack.getItemMeta().getDisplayName()).lore(itemStack.getItemMeta().getLore(), false);
         }
         return this;
     }
@@ -87,8 +87,9 @@ public class ItemBuilder {
     }
 
     /**
-        Set the custom model data of the item to work with a texture pack
-     @param i the id of the texture
+     * Sets the CustomModelData of the item
+     * @param i the data
+     * @return this
      */
     public ItemBuilder customModelData(Integer i) {
         ItemMeta meta = itemStack.getItemMeta();
@@ -98,18 +99,45 @@ public class ItemBuilder {
     }
 
     /**
-        Set the custom display name of an item
-     @param name the name with &codes
+     * Sets the material type of the item
+     * @param material the material
+     * @return this
+     */
+    public ItemBuilder type(Material material) {
+        itemStack.setType(material);
+        return this;
+    }
+
+    /**
+     * Set the displayName of the item. '&' color prefix will be translated accordingly
+     * @param name the custom name
+     * @return this
      */
     public ItemBuilder name(String name) {
+        return this.name(name, true);
+    }
+
+    /**
+     * Set the displayName of the item. '&' color prefix will be translated if translate is 'true'
+     * @param name the custom name
+     * @return this
+     */
+    public ItemBuilder name(String name, boolean translate) {
         ItemMeta meta = itemStack.getItemMeta();
 
-        meta.setDisplayName(ChatColor.translateAlternateColorCodes('&', "&r" + name));
+        name = translate ?
+                Util.format("&r" + name) :
+                name;
+        meta.setDisplayName(name);
         itemStack.setItemMeta(meta);
 
         return this;
     }
 
+    /**
+     * Sets the displayName of the item to its default
+     * @return this
+     */
     public ItemBuilder resetName() {
         return name(null);
     }
@@ -119,25 +147,31 @@ public class ItemBuilder {
     }
 
     /**
-        Set the lore of an item
-     @param lore the lore
+     * Set the lore of an item, with lines separated by a newline character
+     * @param lore the lore
+     * @return this
      */
     public ItemBuilder lore(String lore) {
+        return this.lore(lore, true);
+    }
+
+    public ItemBuilder lore(String lore, boolean format) {
         if (lore == null)
             return this;
-        return lore(lore.split("\n"));
+        return lore(lore.split("\n"), format);
     }
 
-    public ItemBuilder lore(String[] lore) {
-        return lore(Arrays.asList(lore));
+    public ItemBuilder lore(String[] lore, boolean format) {
+        return lore(Arrays.asList(lore), format);
     }
 
-    public ItemBuilder lore(List<String> lore) {
+    public ItemBuilder lore(List<String> lore, boolean format) {
         if (lore != null) {
             ItemMeta meta = itemStack.getItemMeta();
 
-            for (int i = 0; i < lore.size(); i++)
-                lore.set(i, ChatColor.translateAlternateColorCodes('&', "&7" + lore.get(i)));
+            if (format)
+                for (int i = 0; i < lore.size(); i++)
+                    lore.set(i, Util.format("&7" + lore.get(i)));
 
             meta.setLore(lore);
 
@@ -157,10 +191,11 @@ public class ItemBuilder {
     }
 
     /**
-       Set the color of leather armor or a potion
-     @param r red
-     @param g green
-     @param b blue
+     * Set the color of a colored item (leather armor, or potion)
+     * @param r red component
+     * @param g green component
+     * @param b blue component
+     * @return this
      */
     public ItemBuilder color(int r, int g, int b) {
         return this.color(Color.fromRGB(r, g, b));
@@ -180,7 +215,9 @@ public class ItemBuilder {
     }
 
     /**
-     * Set the amount of items
+     * Set the item amount
+     * @param c the amount
+     * @return this
      */
     public ItemBuilder count(int c) {
         itemStack.setAmount(c);
@@ -188,7 +225,8 @@ public class ItemBuilder {
     }
 
     /**
-       Flag an item as unbreakable
+     * Makes an item unbreakable
+     * @return this
      */
     public ItemBuilder unbreakable() {
         ItemMeta meta = itemStack.getItemMeta();
@@ -205,6 +243,11 @@ public class ItemBuilder {
         return this;
     }
 
+    /**
+     * Make an item look like it's enchanted
+     * @param state true or false
+     * @return this
+     */
     public ItemBuilder glow(boolean state) {
         if (state) {
             //itemStack.addUnsafeEnchantment(Enchantment.DAMAGE_ALL, 1);

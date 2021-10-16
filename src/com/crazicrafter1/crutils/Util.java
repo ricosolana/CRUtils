@@ -1,11 +1,12 @@
 package com.crazicrafter1.crutils;
 
+import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.Validate;
+import org.bukkit.Bukkit;
 import org.bukkit.Color;
-import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.potion.PotionEffectType;
+import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.FileOutputStream;
@@ -16,6 +17,8 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Util {
 
@@ -39,6 +42,47 @@ public class Util {
                 }
             }
         }.runTaskLater(Main.getInstance(), 1);
+    }
+
+    /**
+     * Simply converts § to &
+     * @param itemStack
+     * @return
+     */
+    public static String flattenedName(ItemStack itemStack) {
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta != null) {
+            Main.getInstance().info("here1");
+            if (meta.hasDisplayName()) {
+                Main.getInstance().info("here2");
+                String name = Util.toAlternateColorCodes('&', meta.getDisplayName());
+                return name;
+            }
+            Main.getInstance().info("here3");
+            return meta.getLocalizedName();
+        }
+        Main.getInstance().info("here4");
+        return null;
+    }
+
+    /**
+     * Same as {@link @flattenedName} but lores are combined, and separated by a newline '\n' character
+     * @param itemStack
+     * @return
+     */
+    public static String flattenedLore(ItemStack itemStack, String def) {
+        ItemMeta meta = itemStack.getItemMeta();
+        if (meta != null) {
+            List<String> loreList = meta.getLore();
+            if (loreList != null) {
+                StringBuilder builder = new StringBuilder();
+                for (String lore : loreList) {
+                    builder.append(Util.toAlternateColorCodes('&', lore)).append("\n");
+                }
+                return builder.toString();
+            }
+        }
+        return Util.toAlternateColorCodes('&', def);
     }
 
     /*
@@ -100,6 +144,21 @@ public class Util {
 
     public static int sqDist(int x1, int y1, int x2, int y2) {
         return (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2);
+    }
+
+    //                                                      #123456
+    private static final Pattern pattern = Pattern.compile("&#[a-fA-F0-9]{6}");
+
+    public static String format(String s) {
+        if (ReflectionUtil.isAtLeastVersion("1_16")) {
+            Matcher match = pattern.matcher(s);
+            while (match.find()) {
+                String color = s.substring(match.start(), match.end());
+                s = s.replace(color, "" + ChatColor.of(color.substring(1)));
+                match = pattern.matcher(s);
+            }
+        }
+        return org.bukkit.ChatColor.translateAlternateColorCodes('&', s);
     }
 
     /*

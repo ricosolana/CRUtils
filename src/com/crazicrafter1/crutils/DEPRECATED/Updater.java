@@ -1,8 +1,7 @@
-package com.crazicrafter1.crutils;
+package com.crazicrafter1.crutils.DEPRECATED;
 
+import com.crazicrafter1.crutils.Main;
 import org.bukkit.Bukkit;
-import org.bukkit.plugin.InvalidDescriptionException;
-import org.bukkit.plugin.InvalidPluginException;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -11,6 +10,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.nio.charset.StandardCharsets;
+import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 
 import static com.crazicrafter1.crutils.Util.copy;
@@ -98,21 +98,38 @@ public class Updater {
         try {
             ReleaseInfo releaseInfo;
             if ((releaseInfo = getCrossVersioning()) != ReleaseInfo.OUTDATED) {
-                Main.getInstance().info(pluginName + " is " + releaseInfo.name().toLowerCase());
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        Main.getInstance().info(pluginName + " is " + releaseInfo.name().toLowerCase().replace("_", " "));
+                    }
+                }.runTaskLater(Main.getInstance(), 0);
                 return;
             }
 
             // print everything
-            Main.getInstance().debug("latestVersion: " + latestVersion);
-            Main.getInstance().debug("latestDownloadUrl: " + latestDownloadUrl);
+            //Main.getInstance().debug("latestVersion: " + latestVersion);
+            //Main.getInstance().debug("latestDownloadUrl: " + latestDownloadUrl);
 
             if (!doUpdates) {
-                Main.getInstance().important(
-                        String.format("A new update is available for %s (%s), please consider installing it!", pluginName, latestVersion));
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        Main.getInstance().important(
+                                String.format("A new update is available for %s (%s), please consider installing it!", pluginName, latestVersion));
+                    }
+                }.runTaskLater(Main.getInstance(), 0);
+
                 return;
             }
 
-            Main.getInstance().important("Updating " + pluginName + " to " + latestVersion);
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    Main.getInstance().important("Updating " + pluginName + " to " + latestVersion);
+                }
+            }.runTaskLater(Main.getInstance(), 0);
+
 
             Plugin plugin = getPlugin();
 
@@ -154,7 +171,30 @@ public class Updater {
                 public void run() {
                     try {
                         Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(pluginFile));
-                    } catch (InvalidPluginException | InvalidDescriptionException e) {
+
+                        for (Plugin otherPlugin : Bukkit.getPluginManager().getPlugins()) {
+                            // now test if the plugin depends on the reloaded plugin
+                            if (new HashSet<>(otherPlugin.getDescription().getDepend()).contains(pluginName)) {
+                                // disable it
+                                File otherFile = new File(URLDecoder.decode(
+                                        otherPlugin.getClass().getProtectionDomain().getCodeSource().getLocation().getPath(),
+                                        StandardCharsets.UTF_8.toString()));
+
+                                Bukkit.getPluginManager().disablePlugin(otherPlugin);
+
+                                new BukkitRunnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Bukkit.getPluginManager().enablePlugin(Bukkit.getPluginManager().loadPlugin(otherFile));
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }.runTaskLater(Main.getInstance(), 3 * 20);
+                            }
+                        }
+                    } catch (Exception e) {
                         e.printStackTrace();
                     }
                 }

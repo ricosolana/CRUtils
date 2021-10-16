@@ -2,7 +2,6 @@ package com.crazicrafter1.crutils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
@@ -10,10 +9,10 @@ import java.util.Map;
 
 public class Main extends JavaPlugin {
 
-    public final String prefix = ChatColor.translateAlternateColorCodes('&',
-            "&8[&f&lCRUtils&r&8] ");
+    public final String prefix = Util.format("&8[&f&lCRUtils&r&8] ");
 
-    public static boolean debug;
+    public boolean debug;
+    public boolean update;
 
     private static Main instance;
     public static Main getInstance() {
@@ -24,26 +23,11 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         Main.instance = this;
 
-        //if (ReflectionUtil.isVersion("1_17_1")) {
-        //    error("Works only on 1.17.1 (latest minecraft version)");
-        //    Bukkit.getPluginManager().disablePlugin(this);
-        //    return;
-        //}
+        GithubUpdater.autoUpdate(this, "PeriodicSeizures", "CRUtils", "CRUtils.jar");
 
         this.saveDefaultConfig();
         debug = this.getConfig().getBoolean("debug");
-
-        // register checker
-        new Updater(this, "PeriodicSeizures", "CRUtils", false);
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                for (Map.Entry<String, Updater> entry : Updater.updates.entrySet()) {
-                    entry.getValue().updateFromGithub();
-                }
-            }
-        }.runTaskTimerAsynchronously(Main.getInstance(), 1, 3600 * 24 * 20);
+        update = this.getConfig().getBoolean("update");
 
         new EventListener(this);
     }
