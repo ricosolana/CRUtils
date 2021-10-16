@@ -1,8 +1,12 @@
 name: CRUtils
 main: com.crazicrafter1.crutils.Main
-version: 1.0.0 # first version!
+version: 1.0.1 # first version!
 api-version: 1.13
 author: crazicrafter1
+
+# 1.0.1 (10/15/2021)
+# hotfixes
+
 
 # 1.0.0 (10/12/2021)
 # first version
