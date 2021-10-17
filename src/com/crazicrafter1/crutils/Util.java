@@ -2,7 +2,7 @@ package com.crazicrafter1.crutils;
 
 import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.Validate;
-import org.bukkit.Bukkit;
+import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Color;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
@@ -147,18 +147,74 @@ public class Util {
     }
 
     //                                                      #123456
-    private static final Pattern pattern = Pattern.compile("&#[a-fA-F0-9]{6}");
+    private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("&#[a-fA-F0-9]{6}");
 
     public static String format(String s) {
         if (ReflectionUtil.isAtLeastVersion("1_16")) {
-            Matcher match = pattern.matcher(s);
+            Matcher match = HEX_COLOR_PATTERN.matcher(s);
             while (match.find()) {
                 String color = s.substring(match.start(), match.end());
                 s = s.replace(color, "" + ChatColor.of(color.substring(1)));
-                match = pattern.matcher(s);
+                match = HEX_COLOR_PATTERN.matcher(s);
             }
         }
         return org.bukkit.ChatColor.translateAlternateColorCodes('&', s);
+    }
+
+    // https://rgb.birdflop.com/script.js
+    public static ArrayList<String> gradient(String colorStart, String colorEnd, int colorCount) {
+
+        final Color start = hexToColor(colorStart);
+        final Color end = hexToColor(colorEnd);
+
+        final ArrayList<String> gradient = new ArrayList<>();
+
+        float alpha = 0;
+        for (int i =0; i < colorCount; i++) {
+
+            alpha += (1.f / (float)colorCount);
+
+            gradient.add(colorToHex(Color.fromRGB(
+                    (int)((float)start.getRed() * alpha + (1.f - alpha) * (float)end.getRed()),
+                    (int)((float)start.getGreen() * alpha + (1.f - alpha) * (float)end.getGreen()),
+                    (int)((float)start.getBlue() * alpha + (1.f - alpha) * (float)end.getBlue())
+            )));
+        }
+        return gradient;
+    }
+
+    /**
+     * Must be in the format #000000
+     * @param hex
+     * @return
+     */
+    public static Color hexToColor(String hex) {
+        Validate.isTrue(hex.length() == 7, "Not a hex string (length)");
+        Validate.isTrue(hex.charAt(0) == '#', "Not a hex string (#)");
+        Validate.isTrue(NumberUtils.isNumber(hex.substring(1)), "Not a hex string (number)");
+
+        return Color.fromRGB(Integer.parseInt(hex.substring(1,3), 16),
+                Integer.parseInt(hex.substring(3, 5), 16),
+                Integer.parseInt(hex.substring(5), 16));
+    }
+
+    public static String colorToHex(Color color) {
+        return "#" + Integer.toHexString(color.getRed()) +
+                Integer.toHexString(color.getGreen()) +
+                Integer.toHexString(color.getBlue());
+    }
+
+    private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + '§' + "[0-9A-FK-ORX]");
+    //@Contract("!null -> !null; null -> null")
+    public static String stripColor(String input, Map<Integer, String> indexes) {
+        if (input == null)
+            return null;
+        Matcher match = STRIP_COLOR_PATTERN.matcher(input);
+        while (match.find()) {
+            indexes.put(match.start(), input.substring(match.start(), match.end()));
+        }
+
+        return match.replaceAll("");
     }
 
     /*
