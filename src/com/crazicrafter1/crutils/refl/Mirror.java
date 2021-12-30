@@ -37,9 +37,22 @@ public class Mirror {
 
             // NMS ItemStack has an instance method to get tag
             // get it
-            METHOD_getTag = ReflectionUtil.getMethod(CLASS_ItemStack, "getTag");
+            // 1.18.1
+            // NBTTagCompound s()
+            try {
+                METHOD_getTag = ReflectionUtil.getMethod(CLASS_ItemStack, "getTag");
+            } catch (Exception e) {
+                METHOD_getTag = ReflectionUtil.getMethod(CLASS_ItemStack, "s");
+            }
             CLASS_NBTTagCompound = METHOD_getTag.getReturnType();
-            METHOD_setTag = ReflectionUtil.getMethod(CLASS_ItemStack, "setTag", CLASS_NBTTagCompound);
+
+            // 1.18.1
+            // void c(@Nullable NBTTagCompound nbttagcompound)
+            try {
+                METHOD_setTag = ReflectionUtil.getMethod(CLASS_ItemStack, "setTag", CLASS_NBTTagCompound);
+            } catch (Exception e) {
+                METHOD_setTag = ReflectionUtil.getMethod(CLASS_ItemStack, "c", CLASS_NBTTagCompound);
+            }
 
             //static final Class<?> CLASS_NBTBase = ReflectionUtil.getMethod(CLASS_NBTTagCompound,"get").getReturnType();
             CLASS_NBTBase = CLASS_NBTTagCompound.getInterfaces()[0];
