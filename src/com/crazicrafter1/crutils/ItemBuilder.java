@@ -40,19 +40,6 @@ public class ItemBuilder {
         return this;
     }
 
-    private static Object makeProfile(String b64) {
-        // random uuid based on the b64 string
-        UUID id = new UUID(
-                b64.substring(b64.length() - 20).hashCode(),
-                b64.substring(b64.length() - 10).hashCode()
-        );
-
-        // https://github.com/deanveloper/SkullCreator/blob/master/src/main/java/dev/dbassett/skullcreator/SkullCreator.java#L260
-        GameProfileMirror profile = new GameProfileMirror(id, "aaaaa");
-        profile.putProperty("textures", new PropertyMirror("textures", b64, null));
-        return profile.getInstance();
-    }
-
     public ItemBuilder effect(PotionEffect effect) {
         if (itemStack.getItemMeta() instanceof PotionMeta) {
             PotionMeta meta = (PotionMeta) itemStack.getItemMeta();
@@ -82,7 +69,7 @@ public class ItemBuilder {
                 "setProfile",
                 GameProfileMirror.gameProfileClass);
 
-        ReflectionUtil.invokeMethod(setProfileMethod, meta, makeProfile(base64));
+        ReflectionUtil.invokeMethod(setProfileMethod, meta, Util.makeGameProfile(base64));
 
         itemStack.setItemMeta(meta);
         return this;

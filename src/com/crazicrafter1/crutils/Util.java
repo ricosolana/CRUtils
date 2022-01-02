@@ -1,5 +1,7 @@
 package com.crazicrafter1.crutils;
 
+import com.crazicrafter1.crutils.refl.GameProfileMirror;
+import com.crazicrafter1.crutils.refl.PropertyMirror;
 import net.md_5.bungee.api.ChatColor;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
@@ -52,16 +54,16 @@ public class Util {
     public static String flattenedName(ItemStack itemStack) {
         ItemMeta meta = itemStack.getItemMeta();
         if (meta != null) {
-            Main.getInstance().info("here1");
+            //Main.getInstance().info("here1");
             if (meta.hasDisplayName()) {
-                Main.getInstance().info("here2");
+                //Main.getInstance().info("here2");
                 String name = Util.toAlternateColorCodes('&', meta.getDisplayName());
                 return name;
             }
-            Main.getInstance().info("here3");
+            //Main.getInstance().info("here3");
             return meta.getLocalizedName();
         }
-        Main.getInstance().info("here4");
+        //Main.getInstance().info("here4");
         return null;
     }
 
@@ -375,4 +377,16 @@ public class Util {
         }
     }
 
+    public static Object makeGameProfile(String b64) {
+        // random uuid based on the b64 string
+        UUID id = new UUID(
+                b64.substring(b64.length() - 20).hashCode(),
+                b64.substring(b64.length() - 10).hashCode()
+        );
+
+        // https://github.com/deanveloper/SkullCreator/blob/master/src/main/java/dev/dbassett/skullcreator/SkullCreator.java#L260
+        GameProfileMirror profile = new GameProfileMirror(id, "aaaaa");
+        profile.putProperty("textures", new PropertyMirror("textures", b64, null));
+        return profile.getInstance();
+    }
 }
