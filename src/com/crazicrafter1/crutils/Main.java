@@ -14,6 +14,8 @@ public class Main extends JavaPlugin {
     public boolean debug;
     public boolean update;
 
+    public boolean supportPlaceholders;
+
     private static Main instance;
     public static Main getInstance() {
         return instance;
@@ -28,6 +30,8 @@ public class Main extends JavaPlugin {
         this.saveDefaultConfig();
         debug = this.getConfig().getBoolean("debug");
         update = this.getConfig().getBoolean("update");
+
+        supportPlaceholders = getServer().getPluginManager().isPluginEnabled("PlaceholderAPI");
 
         new EventListener(this);
     }

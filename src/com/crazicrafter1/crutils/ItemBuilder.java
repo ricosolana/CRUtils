@@ -3,15 +3,17 @@ package com.crazicrafter1.crutils;
 import com.crazicrafter1.crutils.refl.*;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionEffect;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID;
+import java.util.Objects;
 
 public class ItemBuilder {
 
@@ -187,6 +189,53 @@ public class ItemBuilder {
 
         itemStack.setItemMeta(meta);
 
+        return this;
+    }
+
+    public String getLore() {
+        List<String>lore = itemStack.getItemMeta().getLore();
+        if (lore == null) return null;
+        return String.join("\n", lore);
+    }
+
+    /**
+     * Apply a macro replacement to the name and lore
+     * @param delim the delimiter i.e %
+     * @param match the macro name
+     * @param value the macro value
+     * @return this
+     */
+    public ItemBuilder macro(String delim, String match, String value) {
+        name(Util.macro(getName(), delim, match, value));
+        lore(Util.macro(getLore(), delim, match, value));
+
+        return this;
+    }
+
+    /**
+     * Apply PlaceholderAPI placeholders to the name and lore
+     * if player is null, does nothing
+     * @param p the player to substitute values from
+     * @return this
+     */
+    public ItemBuilder placeholders(@Nullable Player p) {
+        //Main.getInstance().info("support placeholders: " + Main.getInstance().supportPlaceholders);
+        if (p != null && Main.getInstance().supportPlaceholders) {
+            String temp = getName();
+            if (temp != null)
+                name(me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(
+                    p, temp));
+
+            /*
+             * not the most efficient process,
+             * but this is java
+             * so wbo really cares about performance
+             */
+            temp = getLore();
+            if (temp != null)
+                lore(me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(
+                    p, temp));
+        }
         return this;
     }
 

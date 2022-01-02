@@ -217,6 +217,10 @@ public class Util {
         return match.replaceAll("");
     }
 
+    public static String macro(String str, String delim, String match, String value) {
+        return str.replace(delim + match + delim, value);
+    }
+
     /*
     public static Enchantment matchEnchant(String enchant) {
         String e = enchant.toUpperCase().replace(" ", "_");
