@@ -56,14 +56,35 @@ public class Mirror {
 
             //static final Class<?> CLASS_NBTBase = ReflectionUtil.getMethod(CLASS_NBTTagCompound,"get").getReturnType();
             CLASS_NBTBase = CLASS_NBTTagCompound.getInterfaces()[0];
-            CLASS_NBTTagList = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "getList", String.class, int.class).getReturnType();
 
-            METHOD_set = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "set", String.class, CLASS_NBTBase);
-            METHOD_setInt = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setInt", String.class, int.class);
-            METHOD_setDouble = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setDouble", String.class, double.class);
-            METHOD_setString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setString", String.class, String.class);
+            // 1.8.1
+            // NBTTagList c(String var0, int var1)
+            try {
+                CLASS_NBTTagList = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "getList", String.class, int.class).getReturnType();
+            } catch (Exception e) {
+                CLASS_NBTTagList = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "c", String.class, int.class).getReturnType();
+            }
 
-            METHOD_getString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "getString", String.class);
+            // 1.18.1
+            // NBTBase a(String var0, NBTBase var1)
+            try {
+                METHOD_set = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "set", String.class, CLASS_NBTBase);
+                METHOD_setInt = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setInt", String.class, int.class);
+                METHOD_setDouble = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setDouble", String.class, double.class);
+                METHOD_setString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setString", String.class, String.class);
+
+                METHOD_getString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "getString", String.class);
+
+            } catch (Exception e) {
+                METHOD_set = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "a", String.class, CLASS_NBTBase);
+                METHOD_setInt = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "a", String.class, int.class);
+                METHOD_setDouble = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "a", String.class, double.class);
+                METHOD_setString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "a", String.class, String.class);
+
+                METHOD_getString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "l", String.class);
+
+            }
+
 
             //METHOD_add = ReflectionUtil.getMethod(CLASS_NBTTagList, "add", CLASS_NBTBase);
         } catch (Exception e) {
