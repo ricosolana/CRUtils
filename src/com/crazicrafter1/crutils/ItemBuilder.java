@@ -132,7 +132,9 @@ public class ItemBuilder {
     }
 
     public String getName() {
-        return itemStack.getItemMeta().getDisplayName();
+        if (itemStack.getItemMeta().hasDisplayName())
+            return itemStack.getItemMeta().getDisplayName();
+        return null;
     }
 
     /**

@@ -51,20 +51,15 @@ public class Util {
      * @param itemStack
      * @return
      */
-    public static String flattenedName(ItemStack itemStack) {
+    public static String flattenedName(ItemStack itemStack, String def) {
         ItemMeta meta = itemStack.getItemMeta();
         if (meta != null) {
-            //Main.getInstance().info("here1");
             if (meta.hasDisplayName()) {
-                //Main.getInstance().info("here2");
-                String name = Util.toAlternateColorCodes('&', meta.getDisplayName());
-                return name;
+                return Util.toAlternateColorCodes('&', meta.getDisplayName());
             }
-            //Main.getInstance().info("here3");
             return meta.getLocalizedName();
         }
-        //Main.getInstance().info("here4");
-        return null;
+        return def;
     }
 
     /**
@@ -79,12 +74,12 @@ public class Util {
             if (loreList != null) {
                 StringBuilder builder = new StringBuilder();
                 for (String lore : loreList) {
-                    builder.append(Util.toAlternateColorCodes('&', lore)).append("\n");
+                    builder.append(toAlternateColorCodes('&', lore)).append("\n");
                 }
                 return builder.toString();
             }
         }
-        return Util.toAlternateColorCodes('&', def);
+        return toAlternateColorCodes('&', def);
     }
 
     /*
