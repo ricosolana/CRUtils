@@ -1,9 +1,13 @@
 name: CRUtils
 main: com.crazicrafter1.crutils.Main
-version: 1.0.2 # last: 1.0.1
+version: 1.0.3 # last: 1.0.2
 api-version: 1.13
 author: crazicrafter1
 softdepend: [PlaceholderAPI]
+
+# 1.0.3 (1/14/2022)
+# 1.18.1 support + fixes
+
 
 # 1.0.2 (10/17/2021)
 # color codes
