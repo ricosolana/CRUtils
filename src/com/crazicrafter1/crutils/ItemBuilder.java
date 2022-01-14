@@ -112,7 +112,12 @@ public class ItemBuilder {
      * @return this
      */
     public ItemBuilder name(String name, boolean translate) {
+        if (name == null)
+            return this;
+
         ItemMeta meta = itemStack.getItemMeta();
+
+
 
         name = translate ?
                 Util.format("&r" + name) :

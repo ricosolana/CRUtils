@@ -215,6 +215,8 @@ public class Util {
     }
 
     public static String macro(String str, String delim, String match, String value) {
+        if (str == null)
+            return null;
         return str.replace(delim + match + delim, value);
     }
 
