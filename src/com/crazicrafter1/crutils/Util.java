@@ -2,10 +2,20 @@ package com.crazicrafter1.crutils;
 
 import com.crazicrafter1.crutils.refl.GameProfileMirror;
 import com.crazicrafter1.crutils.refl.PropertyMirror;
+//import com.mojang.authlib.GameProfile;
+//import com.mojang.authlib.properties.Property;
+import com.sun.istack.internal.NotNull;
+import com.sun.istack.internal.Nullable;
+import me.clip.placeholderapi.PlaceholderAPI;
 import net.md_5.bungee.api.ChatColor;
+//import net.minecraft.network.protocol.game.PacketPlayOutPlayerInfo;
+//import net.minecraft.server.level.EntityPlayer;
+//import net.minecraft.server.network.PlayerConnection;
 import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Color;
+//import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
+import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -15,6 +25,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Field;
+import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
@@ -61,6 +73,17 @@ public class Util {
         }
         return def;
     }
+
+    //public static ItemStack getMaterial(String name) {
+    //    try {
+    //        return new ItemStack(Material.matchMaterial(name));
+    //    } catch (Exception e) {
+    //        switch (name.toUpperCase()) {
+    //            case "FIREWORK_ROCKET":
+    //
+    //        }
+    //    }
+    //}
 
     /**
      * Same as {@link @flattenedName} but lores are combined, and separated by a newline '\n' character
@@ -201,23 +224,50 @@ public class Util {
                 Integer.toHexString(color.getBlue());
     }
 
+    private static final Pattern STRIP_HEX_COLOR_PATTERN = Pattern.compile("(?i)§x(§([0-9]|[a-f])){6}");
     private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + '§' + "[0-9A-FK-ORX]");
-    //@Contract("!null -> !null; null -> null")
+
     public static String stripColor(String input, Map<Integer, String> indexes) {
         if (input == null)
             return null;
-        Matcher match = STRIP_COLOR_PATTERN.matcher(input);
-        while (match.find()) {
-            indexes.put(match.start(), input.substring(match.start(), match.end()));
-        }
 
-        return match.replaceAll("");
+        Matcher matcher = STRIP_COLOR_PATTERN.matcher(input);
+        while (matcher.find()) {
+            indexes.put(matcher.start(), input.substring(matcher.start(), matcher.end()));
+        }
+        input = matcher.replaceAll("");
+
+        matcher = STRIP_HEX_COLOR_PATTERN.matcher(input);
+        while (matcher.find()) {
+            indexes.put(matcher.start(), input.substring(matcher.start(), matcher.end()));
+        }
+        return matcher.replaceAll("");
+    }
+
+    public static String stripColor(String input) {
+        String output = STRIP_HEX_COLOR_PATTERN.matcher(input).replaceAll("");
+
+        return STRIP_COLOR_PATTERN.matcher(output).replaceAll("");
     }
 
     public static String macro(String str, String delim, String match, String value) {
         if (str == null)
             return null;
         return str.replace(delim + match + delim, value);
+    }
+
+    /**
+     * Set placeholders of a string using PAPI
+     * PAPI-safe (plugin doesnt have to exist)
+     * @param p player
+     * @param text text
+     * @return placeholder text
+     */
+    public static String placeholders(@Nullable Player p, @NotNull String text) {
+        if (p != null && Main.getInstance().supportPlaceholders) {
+            return PlaceholderAPI.setPlaceholders(p, text);
+        }
+        return text;
     }
 
     /*
@@ -386,4 +436,120 @@ public class Util {
         profile.putProperty("textures", new PropertyMirror("textures", b64, null));
         return profile.getInstance();
     }
+
+    //final static Class<?> CLASS_EntityPlayer = ReflectionUtil.getNMClass("level.EntityPlayer");
+    static Class<?> CLASS_CraftPlayer;
+    static Method METHOD_getHandle;// = ReflectionUtil.getMethod(CLASS_EntityPlayer, "getHandle");
+    static Class<?> CLASS_EntityPlayer;
+    static Field FIELD_playerConnection;
+    static Class<?> CLASS_PlayerConnection;
+    //static Class<?> CLASS_Packet;
+    static Method METHOD_sendPacket;
+    static Class<?> CLASS_PacketPlayOutPlayerInfo;
+
+    static Class<?> CLASS_EnumPlayerInfoAction;
+    static Object ENUM_REMOVE_PLAYER;
+    static Object ENUM_ADD_PLAYER;
+
+    static {
+        CLASS_CraftPlayer = ReflectionUtil.getCraftClass("entity.CraftPlayer");
+        METHOD_getHandle = ReflectionUtil.getMethod(CLASS_CraftPlayer, "getHandle");
+        CLASS_EntityPlayer = METHOD_getHandle.getReturnType();
+        FIELD_playerConnection = ReflectionUtil.findFieldByType(CLASS_EntityPlayer, "PlayerConnection");
+        // get the PlayerConnection
+        CLASS_PlayerConnection = FIELD_playerConnection.getType();
+        //CLASS_Packet = ReflectionUtil.getNMClass("");
+        //METHOD_sendPacket = ReflectionUtil.getMethod(CLASS_PlayerConnection, "sendPacket", CLASS_Packet);
+    }
+
+    // cast player to
+
+    private static String getStringFromURL(String url) {
+        StringBuilder text = new StringBuilder();
+        try {
+            Scanner scanner = new Scanner(new URL(url).openStream());
+            while (scanner.hasNext()) {
+                String line = scanner.nextLine();
+                while (line.startsWith(" ")) {
+                    line = line.substring(1);
+                }
+                text.append(line);
+            }
+            scanner.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return text.toString();
+    }
+
+    /*
+    // net.minecraft.server.level.EntityPlayer
+    public static void setSkin(Player p, String name) {
+
+        //CLASS_PlayerConnection.getPackage().get
+
+        //GameProfileMirror profile = new GameProfileMirror(p.getUniqueId(), null);
+
+        // Run async to not crash or delay server
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                Gson gson = new Gson();
+
+                // Get the player by name UUID
+                String url = "https://api.mojang.com/users/profiles/minecraft/" + name;
+                String json = getStringFromURL(url);
+                String uuid = gson.fromJson(json, JsonObject.class).get("id").getAsString();
+
+                // Get the player skin data by UUID
+                url = "https://sessionserver.mojang.com/session/minecraft/profile/" + uuid + "?unsigned=false";
+                json = getStringFromURL(url);
+                JsonObject mainObject = gson.fromJson(json, JsonObject.class);
+                JsonObject jObject = mainObject.get("properties").getAsJsonArray().get(0).getAsJsonObject();
+                String value = jObject.get("value").getAsString();
+                String sig = jObject.get("signature").getAsString();
+
+                //profile.putProperty("textures", new PropertyMirror("textures", value, sig));
+
+                new BukkitRunnable() {
+                    @Override
+                    public void run() {
+                        EntityPlayer nmPlayer = ((CraftPlayer)p).getHandle();
+                        PlayerConnection con = nmPlayer.b;
+
+                        // In 1.18.1
+                        // void a(Packet<?> packet)
+
+                        // Remove old skin packet
+                        con.a(new PacketPlayOutPlayerInfo(
+                                PacketPlayOutPlayerInfo.EnumPlayerInfoAction.e,
+                                nmPlayer));
+
+                        // In 1.18.1
+                        // GameProfile fp()
+
+                        // Set new skin
+                        GameProfile profile = nmPlayer.fp();
+                        profile.getProperties().removeAll("textures");
+                        profile.getProperties().put("textures", new Property("textures", value, sig));
+
+                        // Add new skin packet
+                        con.a(new PacketPlayOutPlayerInfo(
+                                PacketPlayOutPlayerInfo.EnumPlayerInfoAction.a,
+                                nmPlayer));
+
+                        //p.hidePlayer(p);
+                        p.hidePlayer(Main.getInstance(), p);
+                        new BukkitRunnable() {
+                            @Override
+                            public void run() {
+                                p.showPlayer(Main.getInstance(), p);
+                            }
+                        }.runTaskLater(Main.getInstance(), 1);
+                    }
+                }.runTask(Main.getInstance());
+            }
+        }.runTaskAsynchronously(Main.getInstance());
+    }
+     */
 }

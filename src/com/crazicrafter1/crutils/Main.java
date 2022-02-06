@@ -34,6 +34,8 @@ public class Main extends JavaPlugin {
         supportPlaceholders = getServer().getPluginManager().isPluginEnabled("PlaceholderAPI");
 
         new EventListener(this);
+
+        new Cmd(this);
     }
 
     public void info(String s) {

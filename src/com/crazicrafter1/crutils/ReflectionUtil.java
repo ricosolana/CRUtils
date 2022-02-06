@@ -162,6 +162,26 @@ public final class ReflectionUtil {
         }
     }
 
-    //public static Field getFieldByType()
+    public static void setFieldInstance(Field field, Object instance, Object value) {
+        try {
+            field.setAccessible(true);
+            field.set(instance, value);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    /**
+     * Locate a field in the clazz, which is of type clazzType
+     * @param clazz
+     * @param clazzType
+     * @return
+     */
+    public static Field findFieldByType(Class<?> clazz, String clazzType) {
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.getType().getSimpleName().equals(clazzType)) return field;
+        }
+        throw new NoSuchFieldError("No field with type " + clazzType + " in class: " + clazz.getName());
+    }
 
 }

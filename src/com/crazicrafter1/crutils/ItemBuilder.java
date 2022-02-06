@@ -1,15 +1,18 @@
 package com.crazicrafter1.crutils;
 
 import com.crazicrafter1.crutils.refl.*;
+import com.sun.istack.internal.Nullable;
+import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.*;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
+import org.bukkit.inventory.ItemFactory;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionEffect;
 
-import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.List;
@@ -19,12 +22,22 @@ public class ItemBuilder {
 
     private final ItemStack itemStack;
 
+    private void ensureMeta() {
+        ItemMeta meta = itemStack.getItemMeta();
+
+        if (meta == null) {
+            itemStack.setItemMeta(new ItemStack(itemStack.getType()).getItemMeta());
+        }
+    }
+
     public ItemBuilder(Material material) {
         this.itemStack = new ItemStack(material);
+        //ensureMeta();
     }
 
     public ItemBuilder(ItemStack itemStack) {
         this.itemStack = new ItemStack(itemStack);
+        //ensureMeta();
     }
 
     /**
@@ -61,15 +74,20 @@ public class ItemBuilder {
         return this;
     }
 
+    private static final Class<?> CLASS_CraftMetaSkull = ReflectionUtil.getCraftClass("inventory.CraftMetaSkull");
+    private static Field FIELD_profile = ReflectionUtil.getField(CLASS_CraftMetaSkull, "profile");
+
     public ItemBuilder skull(String base64) {
         SkullMeta meta = (SkullMeta) itemStack.getItemMeta();
 
-        Method setProfileMethod = ReflectionUtil.getMethod(
-                ReflectionUtil.getCraftClass("inventory.CraftMetaSkull"),
-                "setProfile",
-                GameProfileMirror.gameProfileClass);
+        //Method setProfileMethod = ReflectionUtil.getMethod(
+        //        CLASS_CraftMetaSkull,
+        //        "setProfile",
+        //        GameProfileMirror.gameProfileClass);
 
-        ReflectionUtil.invokeMethod(setProfileMethod, meta, Util.makeGameProfile(base64));
+        //ReflectionUtil.invokeMethod(setProfileMethod, meta, Util.makeGameProfile(base64));
+
+        ReflectionUtil.setFieldInstance(FIELD_profile, meta, Util.makeGameProfile(base64));
 
         itemStack.setItemMeta(meta);
         return this;
@@ -217,7 +235,7 @@ public class ItemBuilder {
         if (p != null && Main.getInstance().supportPlaceholders) {
             String temp = getName();
             if (temp != null)
-                name(me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(
+                name(PlaceholderAPI.setPlaceholders(
                     p, temp));
 
             /*
@@ -227,7 +245,7 @@ public class ItemBuilder {
              */
             temp = getLore();
             if (temp != null)
-                lore(me.clip.placeholderapi.PlaceholderAPI.setPlaceholders(
+                lore(PlaceholderAPI.setPlaceholders(
                     p, temp));
         }
         return this;

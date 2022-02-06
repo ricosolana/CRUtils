@@ -17,29 +17,38 @@ public class EventListener implements Listener {
     /*
      * Drag can still happen even on one slot which is extremely fucking annoying
      * for some reason someone thought this was a good idea
+     * ---
+     * So basically the problem is that a drag event is initiated by the client by simply:
+     *  - holding left
+     *  - slightly moving mouse
+     *  - releasing
+     * This will launch an InventoryDragEvent even if only 1 slot was 'dragged' across
+     *
      */
     @EventHandler(priority = EventPriority.HIGHEST)
     public void event(InventoryDragEvent e) {
         Player p = (Player)e.getWhoClicked();
 
-        if (e.getRawSlots().size() == 1) {
-            int rawSlot = 0;
-            for (int slot : e.getRawSlots()) {
-                rawSlot = slot;
+        if (ReflectionUtil.isAtLeastVersion("1_16")) {
+            if (e.getRawSlots().size() == 1) {
+                int rawSlot = 0;
+                for (int slot : e.getRawSlots()) {
+                    rawSlot = slot;
+                }
+
+                ClickType clickType = e.getType() == DragType.EVEN ? ClickType.LEFT : ClickType.RIGHT;
+
+                // dispatch a normal click event, because most plugins are probably not taking advantage
+                // of this little weird annoying quirk
+                e.setCancelled(false);
+
+                InventoryClickEvent event = new InventoryClickEvent(e.getView(), e.getView().getSlotType(rawSlot),
+                        rawSlot, clickType, InventoryAction.PLACE_ALL);
+                Bukkit.getPluginManager().callEvent(event);
+
+                if (event.isCancelled())
+                    e.setCancelled(true);
             }
-
-            ClickType clickType = e.getType() == DragType.EVEN ? ClickType.LEFT : ClickType.RIGHT;
-
-            // dispatch a normal click event, because most plugins are probably not taking advantage
-            // of this little weird annoying quirk
-            e.setCancelled(false);
-
-            InventoryClickEvent event = new InventoryClickEvent(e.getView(), e.getView().getSlotType(rawSlot),
-                    rawSlot, clickType, InventoryAction.PLACE_ALL);
-            Bukkit.getPluginManager().callEvent(event);
-
-            if (event.isCancelled())
-                e.setCancelled(true);
         }
     }
 
