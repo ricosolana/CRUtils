@@ -7,7 +7,8 @@ import org.bukkit.*;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
-class GithubUpdater {
+enum GithubUpdater {
+    ;
 
     public static boolean autoUpdate(final Plugin main, String author, String githubProject, String jarname) {
         try {

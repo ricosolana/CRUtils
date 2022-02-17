@@ -8,16 +8,21 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 
-public final class ReflectionUtil {
+public enum ReflectionUtil {
+    ;
 
-    private final static String OBC = Bukkit.getServer().getClass().getPackage().getName();
-    private final static String NM;
+    private final static String CRAFT_BUKKIT = Bukkit.getServer().getClass().getPackage().getName();
+    private final static String NET_MINECRAFT;
+            //ReflectionUtil.getMethod(
+            //ReflectionUtil.getCraftBukkitClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class).getReturnType().getPackage().getName();
 
     // org\bukkit\craftbukkit\v1_8_R3\
-    private final static String VERSION = OBC.substring(OBC.lastIndexOf(".")+1);
+    // equals: v1_8_R3
+    final static String VERSION = CRAFT_BUKKIT.substring(CRAFT_BUKKIT.lastIndexOf(".")+1);
+    final static int VERSION_MINOR = Integer.parseInt(VERSION.substring(1, VERSION.indexOf("_R")).split("_")[1]);
 
     static {
-        // CrashReport remains consistent in root across versions
+        // CrashReport remains consistent in root package across versions
 
         // net\minecraft\server\v1_8_R3\CrashReport
         // net\minecraft\server\v1_14_R1\CrashReport
@@ -31,29 +36,8 @@ public final class ReflectionUtil {
             crashReport = ReflectionUtil.getCanonicalClass("net.minecraft.CrashReport");
         }
 
-        NM = crashReport.getPackage().getName();
+        NET_MINECRAFT = crashReport.getPackage().getName();
     }
-
-    // need to get the nms path from a relative object
-
-    //public static boolean isOldVersion() {
-    //    String v = OBC.substring(23);
-    //    //float f = Float.valueOf(v.replaceAll("_", "."))
-    //    return !v.contains("1_17");
-    //}
-
-    // org.bukkit.craftbukkit.v1_17_R1
-    public static boolean isVersion(String v) {
-        return OBC.contains(v);
-    }
-
-    public static boolean isAtLeastVersion(String v) {
-        return Integer.parseInt(OBC.substring(24).replace("_", "").replaceAll("R[0-9]", "")) >=
-                Integer.parseInt(v.replace("_", ""));
-    }
-
-    // Not instantiable
-    private ReflectionUtil() { }
 
     // get class by package dir
     public static Class getCanonicalClass(final String canonicalName) {
@@ -64,12 +48,12 @@ public final class ReflectionUtil {
         }
     }
 
-    public static Class<?> getCraftClass(String name) {
-        return getCanonicalClass(OBC + "." + name);
+    public static Class<?> getCraftBukkitClass(String name) {
+        return getCanonicalClass(CRAFT_BUKKIT + "." + name);
     }
 
     public static Class<?> getNMClass(String name) {
-        return getCanonicalClass(NM + "." + name);
+        return getCanonicalClass(NET_MINECRAFT + "." + name);
     }
 
     public static Method getMethod(Class<?> clazz, String method, Class<?>... params) {

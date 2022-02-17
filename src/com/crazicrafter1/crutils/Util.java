@@ -15,7 +15,6 @@ import org.apache.commons.lang.Validate;
 import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Color;
 //import org.bukkit.craftbukkit.v1_18_R1.entity.CraftPlayer;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -34,7 +33,8 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Util {
+public enum Util {
+    ;
 
     public static boolean inRange(int i, int min, int max) {
         return i >= min && i <= max;
@@ -170,11 +170,11 @@ public class Util {
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("&#[a-fA-F0-9]{6}");
 
     public static String format(String s) {
-        if (ReflectionUtil.isAtLeastVersion("1_16")) {
+        if (Version.AT_LEAST_v1_16.a()) {
             Matcher match = HEX_COLOR_PATTERN.matcher(s);
             while (match.find()) {
                 String color = s.substring(match.start(), match.end());
-                s = s.replace(color, "" + ChatColor.of(color.substring(1)));
+                s = s.replace(color, "" + net.md_5.bungee.api.ChatColor.of(color.substring(1)));
                 match = HEX_COLOR_PATTERN.matcher(s);
             }
         }
@@ -263,6 +263,7 @@ public class Util {
      * @param text text
      * @return placeholder text
      */
+    @NotNull
     public static String placeholders(@Nullable Player p, @NotNull String text) {
         if (p != null && Main.getInstance().supportPlaceholders) {
             return PlaceholderAPI.setPlaceholders(p, text);
@@ -366,8 +367,10 @@ public class Util {
      * Does the opposite of ChatColor.translateAlternateColorCodes(...)
      * (Returns the string with &'s)
      */
-    public static String toAlternateColorCodes(char altColorChar, String textToTranslate) {
-        Validate.notNull(textToTranslate, "Cannot translate null text");
+    public static String toAlternateColorCodes(char altColorChar, @Nullable String textToTranslate) {
+        if (textToTranslate == null)
+            return null;
+        //Validate.notNull(textToTranslate, "Cannot translate null text");
         char[] b = textToTranslate.toCharArray();
 
         for(int i = 0; i < b.length - 1; ++i) {
@@ -380,7 +383,7 @@ public class Util {
         return new String(b);
     }
 
-    public static List<String> toAlternateColorCodes(char altColorChar, List<String> list) {
+    public static List<String> toAlternateColorCodes(char altColorChar, @Nullable List<String> list) {
         if (list == null)
             return null;
 
@@ -452,7 +455,7 @@ public class Util {
     static Object ENUM_ADD_PLAYER;
 
     static {
-        CLASS_CraftPlayer = ReflectionUtil.getCraftClass("entity.CraftPlayer");
+        CLASS_CraftPlayer = ReflectionUtil.getCraftBukkitClass("entity.CraftPlayer");
         METHOD_getHandle = ReflectionUtil.getMethod(CLASS_CraftPlayer, "getHandle");
         CLASS_EntityPlayer = METHOD_getHandle.getReturnType();
         FIELD_playerConnection = ReflectionUtil.findFieldByType(CLASS_EntityPlayer, "PlayerConnection");

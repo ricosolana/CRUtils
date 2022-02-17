@@ -35,7 +35,7 @@ public class Main extends JavaPlugin {
 
         new EventListener(this);
 
-        new Cmd(this);
+        //new Cmd(this);
     }
 
     public void info(String s) {

@@ -28,7 +28,7 @@ public class Mirror {
 
     static {
         try {
-            CLASS_CraftItemStack = ReflectionUtil.getCraftClass("inventory.CraftItemStack");
+            CLASS_CraftItemStack = ReflectionUtil.getCraftBukkitClass("inventory.CraftItemStack");
 
             METHOD_asNMSCopy = ReflectionUtil.getMethod(CLASS_CraftItemStack, "asNMSCopy", ItemStack.class);
             CLASS_ItemStack = METHOD_asNMSCopy.getReturnType();

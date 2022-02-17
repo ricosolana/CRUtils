@@ -29,7 +29,7 @@ public class EventListener implements Listener {
     public void event(InventoryDragEvent e) {
         Player p = (Player)e.getWhoClicked();
 
-        if (ReflectionUtil.isAtLeastVersion("1_16")) {
+        if (Version.AT_LEAST_v1_16.a()) {
             if (e.getRawSlots().size() == 1) {
                 int rawSlot = 0;
                 for (int slot : e.getRawSlots()) {
