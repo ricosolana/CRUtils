@@ -1,5 +1,6 @@
 package com.crazicrafter1.crutils;
 
+import com.crazicrafter1.innerutils.GithubUpdater;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.plugin.java.JavaPlugin;
