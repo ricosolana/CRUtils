@@ -1,9 +1,14 @@
 name: CRUtils
 main: com.crazicrafter1.crutils.Main
-version: 1.0.5 # last: 1.0.4
+version: 1.0.6 # last: 1.0.5
 api-version: 1.13
 author: crazicrafter1
 softdepend: [PlaceholderAPI]
+
+# 1.0.6
+# shared jar classes for util
+# TriFunction for lootcrates
+
 
 # 1.0.5 (2/17/2022)
 # restructured ItemBuilder to be more explicit, safe, and useful
