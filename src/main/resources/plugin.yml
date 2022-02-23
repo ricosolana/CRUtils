@@ -1,0 +1,6 @@
+name: CRUtils
+version: ${version}
+main: com.crazicrafter1.crutils.Main
+api-version: 1.13
+softdepend: [ PlaceholderAPI ]
+authors: [ crazicrafter1 ]
