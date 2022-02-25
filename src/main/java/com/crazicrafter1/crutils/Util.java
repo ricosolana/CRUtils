@@ -311,7 +311,11 @@ public enum Util {
 
         Matcher baseMatcher = SEMVER_PATTERN.matcher(baseVersion);
         Matcher otherMatcher = SEMVER_PATTERN.matcher(otherVersion);
-        if (baseMatcher.matches() && otherMatcher.matches()) {
+        //if (baseMatcher.matches() && otherMatcher.matches()) {
+        if (baseMatcher.find() && otherMatcher.find()) {
+            baseVersion = baseVersion.substring(baseMatcher.start(), baseMatcher.end());
+            otherVersion = otherVersion.substring(otherMatcher.start(), otherMatcher.end());
+
             List<Integer> baseSemver = Arrays.stream(baseVersion.split("\\.")).map(Integer::parseInt).collect(Collectors.toList());
             List<Integer> otherSemver = Arrays.stream(otherVersion.split("\\.")).map(Integer::parseInt).collect(Collectors.toList());
 
