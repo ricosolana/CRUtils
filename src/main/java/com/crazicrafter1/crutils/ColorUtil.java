@@ -5,6 +5,11 @@ import org.apache.commons.lang.math.NumberUtils;
 import org.bukkit.Color;
 
 import javax.annotation.Nullable;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.nio.file.Files;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -15,9 +20,9 @@ public enum ColorUtil {
     ;
 
     //                                                      #123456
-    private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("&#[a-fA-F0-9]{6}");
-    private static final Pattern STRIP_HEX_COLOR_PATTERN = Pattern.compile("(?i)§x(§([0-9]|[a-f])){6}");
-    private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?i)" + "§" + "[0-9A-FK-ORX]");
+    private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("(?im)&#[0-9a-f]{6}");
+    private static final Pattern STRIP_HEX_COLOR_PATTERN = Pattern.compile("(?im)\u00A7x(\u00A7([0-9a-f])){6}");
+    private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?im)\u00A7[0-9a-fk-orx]");
 
     public static String color(String s) {
         if (Version.AT_LEAST_v1_16.a()) {
@@ -55,10 +60,22 @@ public enum ColorUtil {
         return matcher.replaceAll("");
     }
 
-    public static String strip(String input) {
-        String output = STRIP_HEX_COLOR_PATTERN.matcher(input).replaceAll("");
+    public static String strip(String s) {
+        Matcher matcher = STRIP_HEX_COLOR_PATTERN.matcher(s);
+        while (matcher.find()) {
+            String rep = s.substring(matcher.start(), matcher.end());
+            s = s.replace(rep, "");
+            matcher = STRIP_HEX_COLOR_PATTERN.matcher(s);
+        }
 
-        return STRIP_COLOR_PATTERN.matcher(output).replaceAll("");
+        matcher = STRIP_COLOR_PATTERN.matcher(s);
+        while (matcher.find()) {
+            String rep = s.substring(matcher.start(), matcher.end());
+            s = s.replace(rep, "");
+            matcher = STRIP_COLOR_PATTERN.matcher(s);
+        }
+
+        return s;
     }
 
     /**

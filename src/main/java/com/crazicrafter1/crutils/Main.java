@@ -26,6 +26,8 @@ public class Main extends JavaPlugin {
 
                     Bukkit.getPluginManager().disablePlugin(this);
                     return;
+                } else {
+                    getLogger().info("Using the latest version");
                 }
             } catch (Exception e) {
                 getLogger().warning("Error while updating");
