@@ -33,7 +33,10 @@ public class Main extends JavaPlugin {
                 getLogger().warning("Error while updating");
                 e.printStackTrace();
             }
-        else getLogger().warning("Updating is disabled (delete " + noUpdateFile.getName() + " to enable)");
+        else {
+            getLogger().warning("Updating is disabled (delete " + noUpdateFile.getName() + " to enable)");
+            GitUtils.checkForUpdateAsync(this, "PeriodicSeizures", "CRUtils", (result, tag) -> getLogger().warning("Update " + tag + " is available"));
+        }
 
         Main.instance = this;
 
