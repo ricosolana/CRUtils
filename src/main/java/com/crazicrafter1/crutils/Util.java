@@ -7,6 +7,7 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
@@ -21,6 +22,9 @@ import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public enum Util {
     ;
@@ -298,6 +302,33 @@ public enum Util {
         out.close();
         in.close();
         return bytes;
+    }
+
+    private static final Pattern SEMVER_PATTERN = Pattern.compile("[0-9]+(\\.[0-9]+)+");
+    public static boolean outdatedSemver(String baseVersion, String otherVersion) {
+        if (baseVersion.equals(otherVersion))
+            return false;
+
+        Matcher baseMatcher = SEMVER_PATTERN.matcher(baseVersion);
+        Matcher otherMatcher = SEMVER_PATTERN.matcher(otherVersion);
+        if (baseMatcher.matches() && otherMatcher.matches()) {
+            List<Integer> baseSemver = Arrays.stream(baseVersion.split("\\.")).map(Integer::parseInt).collect(Collectors.toList());
+            List<Integer> otherSemver = Arrays.stream(otherVersion.split("\\.")).map(Integer::parseInt).collect(Collectors.toList());
+
+            // expand one to the other
+            int diff = baseSemver.size() - otherSemver.size();
+            if (diff < 0) {
+                baseSemver.addAll(Collections.nCopies(-diff, 0));
+            } else if (diff > 0)
+                otherSemver.addAll(Collections.nCopies(diff, 0));
+
+            for (int i = 0; i < baseSemver.size(); i++) {
+                if (baseSemver.get(i) < otherSemver.get(i)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**

@@ -6,8 +6,6 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 public class Main extends JavaPlugin {
 
-    public final String prefix = ColorUtil.color("&8[&f&lCRUtils&r&8] ");
-
     public boolean supportPlaceholders;
 
     private static Main instance;
@@ -19,8 +17,12 @@ public class Main extends JavaPlugin {
     public void onEnable() {
         Main.instance = this;
 
-        GithubUpdater.autoUpdate(this, "PeriodicSeizures", "CRUtils", "CRUtils.jar");
-
+        try {
+            GitUtils.updatePlugin(this, "PeriodicSeizures", "CRUtils", "CRUtils.jar", null);
+        } catch (Exception e) {
+            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Error while updating CRUtils");
+            e.printStackTrace();
+        }
         supportPlaceholders = getServer().getPluginManager().isPluginEnabled("PlaceholderAPI");
 
         new EventListener(this);
