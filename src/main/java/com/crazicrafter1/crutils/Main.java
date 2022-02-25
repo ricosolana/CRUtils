@@ -16,12 +16,15 @@ public class Main extends JavaPlugin {
     @Override
     public void onEnable() {
         try {
-            if (GitUtils.updatePlugin(this, "PeriodicSeizures", "CRUtils", "CRUtils.jar")) {
-                Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "Must restart server to use CRUtils");
+            StringBuilder outTag = new StringBuilder();
+            if (GitUtils.updatePlugin(this, "PeriodicSeizures", "CRUtils", "CRUtils.jar", outTag)) {
+                getLogger().warning("Updated to " + outTag + "; restart server to use");
+
+                Bukkit.getPluginManager().disablePlugin(this);
                 return;
             }
         } catch (Exception e) {
-            Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Error while updating CRUtils");
+            getLogger().warning("Error while updating");
             e.printStackTrace();
         }
 
