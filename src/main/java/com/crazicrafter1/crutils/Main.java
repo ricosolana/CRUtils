@@ -15,14 +15,18 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        Main.instance = this;
-
         try {
-            GitUtils.updatePlugin(this, "PeriodicSeizures", "CRUtils", "CRUtils.jar", null);
+            if (GitUtils.updatePlugin(this, "PeriodicSeizures", "CRUtils", "CRUtils.jar")) {
+                Bukkit.getConsoleSender().sendMessage(ChatColor.YELLOW + "Must restart server to use CRUtils");
+                return;
+            }
         } catch (Exception e) {
             Bukkit.getConsoleSender().sendMessage(ChatColor.RED + "Error while updating CRUtils");
             e.printStackTrace();
         }
+
+        Main.instance = this;
+
         supportPlaceholders = getServer().getPluginManager().isPluginEnabled("PlaceholderAPI");
 
         new EventListener(this);
