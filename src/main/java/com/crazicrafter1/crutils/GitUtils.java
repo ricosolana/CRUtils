@@ -170,24 +170,24 @@ public class GitUtils {
 
 
 
-    public static boolean checkForUpdate(final Plugin plugin, String author, String project, String filename) throws IOException {
-        return checkForUpdate(plugin, author, project, filename, null);
+    public static boolean checkForUpdate(final Plugin plugin, String author, String project) throws IOException {
+        return checkForUpdate(plugin, author, project, null);
     }
 
-    public static boolean checkForUpdate(final Plugin plugin, String author, String project, String filename, @Nullable StringBuilder outTag) throws IOException {
+    public static boolean checkForUpdate(final Plugin plugin, String author, String project, @Nullable StringBuilder outTag) throws IOException {
         String tag = getTag(author, project);
         if (outTag != null) outTag.append(tag);
         return Util.outdatedSemver(plugin.getDescription().getVersion(), tag);
     }
 
-    public static void checkForUpdateAsync(final Plugin plugin, String author, String project, String filename, @Nonnull BiConsumer<Boolean, String> callback) {
+    public static void checkForUpdateAsync(final Plugin plugin, String author, String project, @Nonnull BiConsumer<Boolean, String> callback) {
         new BukkitRunnable() {
             @Override
             public void run() {
 
                 try {
                     StringBuilder outTag = new StringBuilder();
-                    boolean result = checkForUpdate(plugin, author, project, filename, outTag);
+                    boolean result = checkForUpdate(plugin, author, project, outTag);
 
                     acceptAsync(callback, result, outTag.toString());
                 } catch (Exception e) {
