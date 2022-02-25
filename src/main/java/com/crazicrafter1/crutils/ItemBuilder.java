@@ -689,7 +689,12 @@ public class ItemBuilder {
      */
     @Nonnull
     public ItemBuilder apply(@Nonnull ItemMeta other) {
-        return this.name(other.getDisplayName()).lore(other.getLore(), ColorMode.COLOR);
+        if (other.hasDisplayName())
+            this.name(other.getDisplayName());
+        if (other.hasLore())
+            lore(other.getLore(), ColorMode.COLOR);
+        //return this.name(other.getDisplayName()).lore(other.getLore(), ColorMode.COLOR);
+        return this;
     }
 
     /**
