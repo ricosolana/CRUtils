@@ -23,7 +23,7 @@ public class GitUtils {
         con.setConnectTimeout(15000);
         con.setReadTimeout(15000);
 
-        JsonObject json = JsonParser.parseReader(new InputStreamReader(con.getInputStream())).getAsJsonObject();
+        JsonObject json = new JsonParser().parse(new InputStreamReader(con.getInputStream())).getAsJsonObject();
         return json.get("tag_name").getAsString();
     }
 
@@ -52,7 +52,7 @@ public class GitUtils {
         con.setConnectTimeout(15000);
         con.setReadTimeout(15000);
 
-        JsonObject json = JsonParser.parseReader(new InputStreamReader(con.getInputStream())).getAsJsonObject();
+        JsonObject json = new JsonParser().parse(new InputStreamReader(con.getInputStream())).getAsJsonObject();
         return json.get("tag_name").getAsString();
     }
 
