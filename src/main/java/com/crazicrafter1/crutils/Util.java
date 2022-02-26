@@ -12,19 +12,19 @@ import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 public enum Util {
     ;
@@ -302,6 +302,26 @@ public enum Util {
         out.close();
         in.close();
         return bytes;
+    }
+
+    public static boolean backupZip(File input, File output) {
+        try {
+            output.mkdirs();
+
+            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(output));
+            zipOut.putNextEntry(new ZipEntry(input.getName()));
+
+            byte[] bytes = Files.readAllBytes(input.toPath());
+            zipOut.write(bytes, 0, bytes.length);
+
+            zipOut.close();
+
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return false;
     }
 
     private static final Pattern SEMVER_PATTERN = Pattern.compile("[0-9]+(\\.[0-9]+)+");
