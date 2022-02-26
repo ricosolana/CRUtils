@@ -1,5 +1,7 @@
 package com.crazicrafter1.crutils;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang.Validate;
 import org.bukkit.ChatColor;
@@ -551,92 +553,41 @@ public class ItemBuilder {
         return copyOf(builder.build());
     }
 
-    private static ArrayList<String> COLORS = new ArrayList<>(Arrays.asList(
-            "WHITE",
-            "ORANGE",
-            "MAGENTA",
-            "LIGHT_BLUE",
-            "YELLOW",
-            "LIME",
-            "PINK",
-            "GRAY",
-            "LIGHT_GRAY",
-            "CYAN",
-            "PURPLE",
-            "BLUE",
-            "BROWN",
-            "GREEN",
-            "RED",
-            "BLACK"
-    ));
-
-    private static HashMap<String, String> LEGACY_NAMES = new HashMap<>();
-    static {
-        LEGACY_NAMES.put("COMPARATOR", "REDSTONE_COMPARATOR");
-        LEGACY_NAMES.put("IRON_HORSE_ARMOR", "IRON_BARDING");
-        LEGACY_NAMES.put("GOLD_HORSE_ARMOR", "GOLD_BARDING");
-        LEGACY_NAMES.put("DIAMOND_HORSE_ARMOR", "DIAMOND_BARDING");
-        LEGACY_NAMES.put("FIREWORK_ROCKET", "FIREWORK");
-        LEGACY_NAMES.put("FIREWORK_STAR", "FIREWORK_CHARGE");
-        LEGACY_NAMES.put("EXPERIENCE_BOTTLE", "EXP_BOTTLE");
-        LEGACY_NAMES.put("PLAYER_HEAD", "SKULL_ITEM");
-    }
-
     /**
      * Version safe item getter
-     * @param name
-     * @return
+     * @param MODERN_NAME Name of the item in 1.18
+     * @throws IllegalArgumentException if an item cannot be matched
      */
-    public static ItemBuilder of(String name) {
-        name = name.toUpperCase();
-        try {
-            try {
-                return copyOf(Material.matchMaterial(name));
-            } catch (Exception e1) {
+    @SuppressWarnings("deprecation")
+    @Nonnull
+    public static ItemBuilder fromModernMaterial(String MODERN_NAME) {
+        MODERN_NAME = MODERN_NAME.toUpperCase();
 
-                try {
-                    return copyOf(Material.matchMaterial(
-                            Objects.requireNonNull(LEGACY_NAMES.get(name))));
-                } catch (Exception e2) {
-                    int index = name.indexOf("_");
+        Material material = Material.matchMaterial(MODERN_NAME);
+        if (material == null) {
+            if (Version.AT_MOST_v1_12.a()) {
+                if (MODERN_NAME.equals("INK_SAC"))          // TODO misnomer
+                    return copyOf(Material.matchMaterial("INK_SACK"));
+
+                for (Map.Entry<Integer, List<String>> entry : AT_MOST_v1_12_TO_MODERN_MAP.entrySet()) {
+                    int index = entry.getValue().indexOf(MODERN_NAME);
                     if (index != -1) {
-                        int dmg;
-                        String materialName;
+                        material = Material.matchMaterial("" + entry.getKey());
 
-                        int index2 = name.indexOf("_", index + 1);
-                        if (index2 == -1) {
-                            // then there is no way that the name is a double size color
-                            dmg = COLORS.indexOf(name.substring(0, index));
-                            materialName = name.substring(index + 1);
-                        } else {
-                            dmg = COLORS.indexOf(name.substring(0, index2));
-                            if (dmg != -1)
-                                materialName = name.substring(index2 + 1);
-                            else {
-                                materialName = name.substring(index + 1);
-                                dmg = COLORS.indexOf(name.substring(0, index));
-                            }
-                        }
-                        // then name is a 2 length
-                        // LIGHT_BLUE_CARPET // 5,
-                        // BLUE_WOOL // 4
-                        // LIGHT_BLUE_STAINED_GLASS_PANE // 5
-
-                        //Main.getInstance().info("materialName: " + materialName + ", dmg: " + dmg);
-
-                        if (materialName.endsWith("DYE"))
-                            return mutable(new ItemStack(Material.matchMaterial("INK_SACK"), 1, (short) (15-dmg)));
-
-                        if (dmg != -1) {
-                            return mutable(new ItemStack(Material.matchMaterial(materialName), 1, (short) dmg));
-                        }
-
+                        if (material != null) return copyOf(new ItemStack(material, 1, (short) index));
                     }
                 }
+            } else if (Version.v1_13.a()) {
+                String LEGACY_NAME = v1_13_TO_MODERN_MAP.inverse().get(MODERN_NAME);
+
+                if (LEGACY_NAME != null) material = Material.matchMaterial(LEGACY_NAME);
             }
-        } catch (Exception ignored) {
         }
-        throw new RuntimeException("Item :'" + name + "' is invalid");
+
+        if (material != null)
+            return copyOf(material);
+
+        throw new IllegalArgumentException("Material " + MODERN_NAME + " does not exist ");
     }
 
     /**
@@ -1140,6 +1091,135 @@ public class ItemBuilder {
     @Nullable
     public String[] getLoreArray() {
         return getMeta().getLore().toArray(new String[0]);
+    }
+
+
+
+    private static final Map<Integer, List<String>> AT_MOST_v1_12_TO_MODERN_MAP = new HashMap<>();
+    private static void addAll_v1_12(Object... values) {
+        for (int i=0; i < values.length; i++) {
+            Validate.isTrue(values[i] instanceof Integer || values[i] instanceof String, "Invalid type: " + values[i].getClass());
+
+            List<String> MODERN = new ArrayList<>();
+
+            i++;
+            for (; i < values.length; i++) {
+                if (values[i] instanceof Integer)
+                    break;
+
+                //if (values[i] instanceof String)
+                    MODERN.add((String) values[i]);
+            }
+            AT_MOST_v1_12_TO_MODERN_MAP.put((Integer) values[i], MODERN);
+
+            i--;
+        }
+    }
+
+    private static final BiMap<String, String> v1_13_TO_MODERN_MAP = HashBiMap.create();
+    private static void addAll_v1_13(String... values) {
+        for (int i=0; i < values.length; i+=2) {
+            v1_13_TO_MODERN_MAP.put(values[i], values[i+1]);
+        }
+    }
+
+    static {
+        // 1.8 -> 1.12 CONVERTED TO 1.18
+        addAll_v1_12(
+                1, "STONE", "GRANITE", "POLISHED_GRANITE", "DIORITE", "POLISHED_DIORITE", "ANDESITE", "POLISHED_ANDESITE",
+                3, "DIRT", "COARSE_DIRT", "PODZOL",
+                5, "OAK_PLANKS", "SPRUCE_PLANKS", "BIRCH_PLANKS", "JUNGLE_PLANKS", "ACACIA_PLANKS", "DARK_OAK_PLANKS",
+                6, "OAK_SAPLING", "SPRUCE_SAPLING", "BIRCH_SAPLING", "JUNGLE_SAPLING", "ACACIA_SAPLING", "DARK_OAK_SAPLING",
+                12, "SAND", "RED_SAND",
+                17, "OAK_LOG", "SPRUCE_LOG", "BIRCH_LOG", "JUNGLE_LOG",
+                18, "OAK_LEAVES", "SPRUCE_LEAVES", "BIRCH_LEAVES", "JUNGLE_LEAVES",
+                19, "SPONGE", "WET_SPONGE",
+                24, "SANDSTONE", "CHISELED_SANDSTONE", "SMOOTH_SANDSTONE",
+                31, "GRASS", "FERN",
+                35, "WHITE_WOOL", "ORANGE_WOOL", "MAGENTA_WOOL", "LIGHT_BLUE_WOOL", "YELLOW_WOOL", "LIME_WOOL", "PINK_WOOL", "GRAY_WOOL", "GRAY_WOOL", "LIGHT_GRAY_WOOL", "CYAN_WOOL", "PURPLE_WOOL", "BLUE_WOOL", "BROWN_WOOL", "GREEN_WOOL", "RED_WOOL", "BLACK_WOOL",
+                37, "DANDELION",
+                38, "POPPY", "BLUE_ORCHID", "ALLIUM", "AZURE_BLUET", "RED_TULIP", "ORANGE_TULIP", "WHITE_TULIP", "PINK_TULIP", "OXEYE_DAISY",
+                44, "SMOOTH_STONE_SLAB", "SANDSTONE_SLAB", "COBBLESTONE_SLAB", "BRICK_SLAB", "STONE_BRICK_SLAB", "NETHER_BRICK_SLAB", "QUARTZ_SLAB",
+                95, "WHITE_STAINED_GLASS", "ORANGE_STAINED_GLASS", "MAGENTA_STAINED_GLASS", "LIGHT_BLUE_STAINED_GLASS", "YELLOW_STAINED_GLASS", "LIME_STAINED_GLASS", "PINK_STAINED_GLASS", "GRAY_STAINED_GLASS", "GRAY_STAINED_GLASS", "LIGHT_GRAY_STAINED_GLASS", "CYAN_STAINED_GLASS", "PURPLE_STAINED_GLASS", "BLUE_STAINED_GLASS", "BROWN_STAINED_GLASS", "GREEN_STAINED_GLASS", "RED_STAINED_GLASS", "BLACK_STAINED_GLASS",
+                97, "INFESTED_STONE", "INFESTED_COBBLESTONE", "INFESTED_STONE_BRICKS", "INFESTED_MOSSY_STONE_BRICKS", "INFESTED_CRACKED_STONE_BRICKS", "INFESTED_CHISELED_STONE_BRICKS",
+                98, "STONE_BRICKS", "MOSSY_STONE_BRICKS", "CRACKED_STONE_BRICKS", "CHISELED_STONE_BRICKS",
+                126, "OAK_SLAB", "SPRUCE_SLAB", "BIRCH_SLAB", "JUNGLE_SLAB", "ACACIA_SLAB", "DARK_OAK_SLAB",
+                139, "COBBLESTONE_WALL", "MOSSY_COBBLESTONE_WALL",
+                145, "ANVIL", "CHIPPED_ANVIL", "DAMAGED_ANVIL",
+                155, "QUARTZ_BLOCK", "CHISELED_QUARTZ_BLOCK", "QUARTZ_PILLAR",
+                159, "WHITE_TERRACOTTA", "ORANGE_TERRACOTTA", "MAGENTA_TERRACOTTA", "LIGHT_BLUE_TERRACOTTA", "YELLOW_TERRACOTTA", "LIME_TERRACOTTA", "PINK_TERRACOTTA", "GRAY_TERRACOTTA", "GRAY_TERRACOTTA", "LIGHT_GRAY_TERRACOTTA", "CYAN_TERRACOTTA", "PURPLE_TERRACOTTA", "BLUE_TERRACOTTA", "BROWN_TERRACOTTA", "GREEN_TERRACOTTA", "RED_TERRACOTTA", "BLACK_TERRACOTTA",
+                160, "WHITE_STAINED_GLASS_PANE", "ORANGE_STAINED_GLASS_PANE", "MAGENTA_STAINED_GLASS_PANE", "LIGHT_BLUE_STAINED_GLASS_PANE", "YELLOW_STAINED_GLASS_PANE", "LIME_STAINED_GLASS_PANE", "PINK_STAINED_GLASS_PANE", "GRAY_STAINED_GLASS_PANE", "GRAY_STAINED_GLASS_PANE", "LIGHT_GRAY_STAINED_GLASS_PANE", "CYAN_STAINED_GLASS_PANE", "PURPLE_STAINED_GLASS_PANE", "BLUE_STAINED_GLASS_PANE", "BROWN_STAINED_GLASS_PANE", "GREEN_STAINED_GLASS_PANE", "RED_STAINED_GLASS_PANE", "BLACK_STAINED_GLASS_PANE",
+                161, "ACACIA_LEAVES", "DARK_OAK_LEAVES",
+                162, "ACACIA_LOG", "DARK_OAK_LOG",
+                168, "PRISMARINE", "PRISMARINE_BRICKS", "DARK_PRISMARINE",
+                171, "WHITE_CARPET", "ORANGE_CARPET", "MAGENTA_CARPET", "LIGHT_BLUE_CARPET", "YELLOW_CARPET", "LIME_CARPET", "PINK_CARPET", "GRAY_CARPET", "GRAY_CARPET", "LIGHT_GRAY_CARPET", "CYAN_CARPET", "PURPLE_CARPET", "BLUE_CARPET", "BROWN_CARPET", "GREEN_CARPET", "RED_CARPET", "BLACK_CARPET",
+                175, "SUNFLOWER", "LILAC", "TALL_GRASS", "LARGE_FERN", "ROSE_BUSH", "PEONY",
+                179, "RED_SANDSTONE", "CHISELED_RED_SANDSTONE", "SMOOTH_RED_SANDSTONE",
+                //182, "RED_SANDSTONE_SLAB",
+                //205, "PURPUR_SLAB",
+                251, "WHITE_CONCRETE", "ORANGE_CONCRETE", "MAGENTA_CONCRETE", "LIGHT_BLUE_CONCRETE", "YELLOW_CONCRETE", "LIME_CONCRETE", "PINK_CONCRETE", "GRAY_CONCRETE", "GRAY_CONCRETE", "LIGHT_GRAY_CONCRETE", "CYAN_CONCRETE", "PURPLE_CONCRETE", "BLUE_CONCRETE", "BROWN_CONCRETE", "GREEN_CONCRETE", "RED_CONCRETE", "BLACK_CONCRETE",
+                252, "WHITE_CONCRETE_POWDER", "ORANGE_CONCRETE_POWDER", "MAGENTA_CONCRETE_POWDER", "LIGHT_BLUE_CONCRETE_POWDER", "YELLOW_CONCRETE_POWDER", "LIME_CONCRETE_POWDER", "PINK_CONCRETE_POWDER", "GRAY_CONCRETE_POWDER", "GRAY_CONCRETE_POWDER", "LIGHT_GRAY_CONCRETE_POWDER", "CYAN_CONCRETE_POWDER", "PURPLE_CONCRETE_POWDER", "BLUE_CONCRETE_POWDER", "BROWN_CONCRETE_POWDER", "GREEN_CONCRETE_POWDER", "RED_CONCRETE_POWDER", "BLACK_CONCRETE_POWDER",
+                263, "COAL", "CHARCOAL",
+                322, "GOLDEN_APPLE", "ENCHANTED_GOLDEN_APPLE",
+                349, null, "SALMON", null, "PUFFERFISH", "",        // TODO fallback instead of null?
+                350, null, "COOKED_SALMON",
+                351, "BLACK_DYE", "RED_DYE", "GREEN_DYE", "BROWN_DYE", "BLUE_DYE", "PURPLE_DYE", "CYAN_DYE", "LIGHT_GRAY_DYE", "GRAY_DYE", "PINK_DYE", "LIME_DYE", "YELLOW_DYE", "LIGHT_BLUE_DYE", "MAGENTA_DYE", "ORANGE_DYE", "WHITE_DYE",
+                355, "WHITE_BED", "ORANGE_BED", "MAGENTA_BED", "LIGHT_BLUE_BED", "YELLOW_BED", "LIME_BED", "PINK_BED", "GRAY_BED", "GRAY_BED", "LIGHT_GRAY_BED", "CYAN_BED", "PURPLE_BED", "BLUE_BED", "BROWN_BED", "GREEN_BED", "RED_BED", "BLACK_BED",
+                //NBT 373, "POTIONS...",
+                //NBT 383, "SPAWN_EGGS...",
+                384, "EXPERIENCE_BOTTLE",
+                397, "SKELETON_SKULL", "WITHER_SKELETON_SKULL", "ZOMBIE_HEAD", "PLAYER_HEAD", "CREEPER_HEAD", "DRAGON_HEAD",
+                //NBT 403, "ENCHANTED_BOOKS..."
+                401, "FIREWORK_ROCKET",
+                402, "FIREWORK_STAR",
+                404, "COMPARATOR",
+                417, "IRON_HORSE_ARMOR",
+                418, "GOLD_HORSE_ARMOR",
+                419, "DIAMOND_HORSE_ARMOR",
+                425, "BLACK_BANNER", "RED_BANNER", "GREEN_BANNER", "BROWN_BANNER", "BLUE_BANNER", "PURPLE_BANNER", "CYAN_BANNER", "LIGHT_GRAY_BANNER", "GRAY_BANNER", "PINK_BANNER", "LIME_BANNER", "YELLOW_BANNER", "LIGHT_BLUE_BANNER", "MAGENTA_BANNER", "ORANGE_BANNER", "WHITE_BANNER"
+                //NBT 438, "SPLASH_POTIONS...",
+                //NBT 440, "TIPPED_ARROWS...",
+                //NBT 441, "LINGERING_POTIONS...",
+        );
+
+        addAll_v1_13(
+                "ROSE_RED", "RED_DYE",
+                "CACTUS_GREEN", "GREEN_DYE",
+                "COCOA_BEANS", "BROWN_DYE",         // TODO misnomer
+                "LAPIS_LAZULI", "BLUE_DYE",         // TODO misnomer
+                "YELLOW_DYE", "DANDELION_YELLOW",
+                "BONE_MEAL", "WHITE_DYE"            // TODO misnomer
+        );
+    }
+
+    @SuppressWarnings("deprecation")
+    @Nonnull
+    public String getModernMaterial() {
+        final String NAME = getMaterial().name();
+
+        if (Version.AT_MOST_v1_12.a()) {
+
+            /// TODO
+            // For INK_SACK, should INK_SAC or BLACK_DYE be returned?
+            // this relation is 1:N, which is problematic
+
+            // According to this process,
+            // INK_SAC will be the result of INK_SACK
+            // Not BLACK_DYE
+
+            final int ID = getMaterial().getId();
+            final int dmg = itemStack.getDurability();
+
+            List<String> MODERN_NAMES = AT_MOST_v1_12_TO_MODERN_MAP.get(ID);
+
+            if (MODERN_NAMES != null) return MODERN_NAMES.get(dmg);
+        } else if (Version.v1_13.a()) {
+            String get = v1_13_TO_MODERN_MAP.get(NAME);
+            if (get != null) return get;
+        }
+
+        // else 1.14 and above
+        return NAME;
     }
 
     /**

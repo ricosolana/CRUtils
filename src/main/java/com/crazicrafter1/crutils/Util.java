@@ -307,7 +307,7 @@ public enum Util {
     public static boolean backupZip(File input, File output) {
         /// Only if a backup failed for an existing File, then FAIL
         try {
-            if (!input.exists())
+            if (!(input.exists() && input.isFile()))
                 return true;
 
             output.mkdirs();
