@@ -305,7 +305,11 @@ public enum Util {
     }
 
     public static boolean backupZip(File input, File output) {
+        /// Only if a backup failed for an existing File, then FAIL
         try {
+            if (!input.exists())
+                return true;
+
             output.mkdirs();
 
             ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(output));
@@ -318,7 +322,7 @@ public enum Util {
 
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            //e.printStackTrace();
         }
 
         return false;
