@@ -1108,6 +1108,15 @@ public class ItemBuilder {
         return itemStack.getAmount();
     }
 
+    /**
+     * Get the enchantments of this
+     * @return
+     */
+    @CheckReturnValue
+    @Nonnull
+    public Map<Enchantment, Integer> getEnchantments() {
+        return itemStack.getEnchantments();
+    }
 
     private static final Map<Integer, List<String>> AT_MOST_v1_12_TO_MODERN_MAP = new HashMap<>();
     private static void addAll_v1_12(Object... values) {
