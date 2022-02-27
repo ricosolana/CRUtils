@@ -30,7 +30,7 @@ import java.util.*;
 public class ItemBuilder {
 
     private static final Class<?> CLASS_CraftMetaSkull = ReflectionUtil.getCraftBukkitClass("inventory.CraftMetaSkull");
-    private static Field FIELD_profile = ReflectionUtil.getField(CLASS_CraftMetaSkull, "profile");
+    private static final Field FIELD_profile = ReflectionUtil.getField(CLASS_CraftMetaSkull, "profile");
 
     /**
      * Strictly static constant
@@ -849,6 +849,11 @@ public class ItemBuilder {
     }
 
     @Nonnull
+    public ItemBuilder lore(@Nullable List<String> lore) {
+        return lore(lore, ColorMode.COLOR);
+    }
+
+    @Nonnull
     public ItemBuilder lore(@Nullable List<String> lore, @Nonnull ColorMode mode) {
         ItemMeta meta = getMeta();
 
@@ -868,7 +873,7 @@ public class ItemBuilder {
      */
     @Nonnull
     public ItemBuilder resetLore() {
-        return lore((List<String>) null, null);
+        return lore((List<String>) null, ColorMode.COLOR);
     }
 
     /**
