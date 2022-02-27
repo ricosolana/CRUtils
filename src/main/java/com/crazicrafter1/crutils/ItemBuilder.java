@@ -1099,6 +1099,15 @@ public class ItemBuilder {
     }
 
 
+    /**
+     * Get the amount of this
+     * @return Amount
+     */
+    @CheckReturnValue
+    public int getAmount() {
+        return itemStack.getAmount();
+    }
+
 
     private static final Map<Integer, List<String>> AT_MOST_v1_12_TO_MODERN_MAP = new HashMap<>();
     private static void addAll_v1_12(Object... values) {
