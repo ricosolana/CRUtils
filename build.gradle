@@ -20,10 +20,15 @@ repositories {
         name = 'lumine'
         url = 'https://mvn.lumine.io/repository/maven-public/'
     }
+    maven {
+        name = 'minecraft-repo'
+        url = 'https://libraries.minecraft.net/'
+    }
 }
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:${project.spigot_version}"
+    implementation "com.mojang:authlib:1.5.21"
     compileOnly 'me.clip:PlaceholderAPI:2.11.1'
 }
 

@@ -2,6 +2,8 @@ package com.crazicrafter1.crutils;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang.Validate;
 import org.bukkit.ChatColor;
@@ -1116,6 +1118,18 @@ public class ItemBuilder {
     @Nonnull
     public Map<Enchantment, Integer> getEnchantments() {
         return itemStack.getEnchantments();
+    }
+
+    @CheckReturnValue
+    @Nullable
+    public String getSkull() {
+        try {
+            SkullMeta meta = (SkullMeta) getMeta();
+            GameProfile profile = (GameProfile) ReflectionUtil.getFieldInstance(FIELD_profile, meta);
+
+            return profile.getProperties().get("textures").stream().findFirst().get().getValue();
+        } catch (Exception e) {}
+        return null;
     }
 
     private static final Map<Integer, List<String>> AT_MOST_v1_12_TO_MODERN_MAP = new HashMap<>();

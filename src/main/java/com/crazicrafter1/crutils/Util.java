@@ -1,7 +1,7 @@
 package com.crazicrafter1.crutils;
 
-import com.crazicrafter1.crutils.refl.GameProfileMirror;
-import com.crazicrafter1.crutils.refl.PropertyMirror;
+import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.properties.Property;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -375,17 +375,16 @@ public enum Util {
         }
     }
 
-    public static Object makeGameProfile(String b64) {
+    public static GameProfile makeGameProfile(String b64) {
         // random uuid based on the b64 string
         UUID id = new UUID(
                 b64.substring(b64.length() - 20).hashCode(),
                 b64.substring(b64.length() - 10).hashCode()
         );
 
-        // https://github.com/deanveloper/SkullCreator/blob/master/src/main/java/dev/dbassett/skullcreator/SkullCreator.java#L260
-        GameProfileMirror profile = new GameProfileMirror(id, "aaaaa");
-        profile.putProperty("textures", new PropertyMirror("textures", b64, null));
-        return profile.getInstance();
+        GameProfile profile = new GameProfile(id, "aaaaa");
+        profile.getProperties().put("textures", new Property("textures", b64, null));
+        return profile;
     }
 
     //final static Class<?> CLASS_EntityPlayer = ReflectionUtil.getNMClass("level.EntityPlayer");
