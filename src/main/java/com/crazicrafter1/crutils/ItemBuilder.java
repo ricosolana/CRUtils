@@ -1132,6 +1132,21 @@ public class ItemBuilder {
         return null;
     }
 
+    public int getModel() {
+        if (getMeta().hasCustomModelData())
+            return getMeta().getCustomModelData();
+        return -1;
+    }
+
+    @Nullable
+    public List<PotionEffect> getEffects() {
+        try {
+            PotionMeta meta = (PotionMeta) getMeta();
+            return meta.getCustomEffects();
+        } catch (Exception e) {}
+        return null;
+    }
+
     private static final Map<Integer, List<String>> AT_MOST_v1_12_TO_MODERN_MAP = new HashMap<>();
     private static void addAll_v1_12(Object... values) {
         for (int i=0; i < values.length; i++) {
