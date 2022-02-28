@@ -310,7 +310,7 @@ public enum Util {
             if (!(input.exists() && input.isFile()))
                 return true;
 
-            output.mkdirs();
+            output.getParentFile().mkdirs();
 
             ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(output));
             zipOut.putNextEntry(new ZipEntry(input.getName()));
@@ -321,9 +321,7 @@ public enum Util {
             zipOut.close();
 
             return true;
-        } catch (Exception e) {
-            //e.printStackTrace();
-        }
+        } catch (Exception e) {}
 
         return false;
     }
