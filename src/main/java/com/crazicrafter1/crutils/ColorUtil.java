@@ -195,8 +195,8 @@ public enum ColorUtil {
 
 
     // Input a string, and gradient it from a..b..c..n(x)
-    public static int gradientColor(@Nonnull char[] in, @Nonnull char[] out, @Nonnull int outOffset,
-                                    int... colors) {
+    public static String gradientColor(@Nonnull String in, int outOffset,
+                                    @Nonnull int... colors) {
         // Take the unformatted string, and add procedural formatting to it
 
         //Color START = Color.fromRGB()
@@ -213,33 +213,30 @@ public enum ColorUtil {
         final int g2 = (colors[0 + 1] >> 8) & 0xFF;
         final int b2 = (colors[0 + 1]) & 0xFF;
 
-        float alpha = 0;
-        float change = 1.f/(float)in.length;
+        final int rc = (r2-r1) / (in.length() + 1); //
+        final int gc = (g2-g1) / (in.length() + 1); // simple work around to prevent color over/under flow
+        final int bc = (b2-b1) / (in.length() + 1); //
 
-        int rc = (r2-r1) / in.length;
-        int gc = (g2-g1) / in.length;
-        int bc = (b2-b1) / in.length;
+        StringBuilder builder = new StringBuilder(in.length() * 15);
 
         // Character iterate
-        for (int ci=0; ci<in.length-1; ci++) {
+        for (int i=0; i<in.length()-1; i++) {
             // 0b AAAAAAAA RRRRRRRR GGGGGGGG BBBBBBBB
 
             // parsing hex string
             // 0b1111: 0xF
             // 15: 0xF
 
+            builder.append("&#").append(Integer.toHexString(r1))
+                    .append(Integer.toHexString(g1))
+                    .append(Integer.toHexString(b1)).append(in.charAt(i));
 
-            // write RR, GG, BB to out
-            out[0] = COLOR_CHAR;
-            out[1] = 'x';
-            //out[2] = Integer.toHexString(rc += r1);
-
-            //out[i] = in[(int)alpha];
-            alpha += change;
-
+            r1 += rc;
+            g1 += gc;
+            b1 += bc;
         }
 
-        return 0;
+        return builder.toString();
     }
 
     // https://rgb.birdflop.com/script.js
