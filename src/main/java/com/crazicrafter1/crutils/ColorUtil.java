@@ -19,10 +19,12 @@ public enum ColorUtil {
     private static final Pattern STRIP_HEX_COLOR_PATTERN = Pattern.compile("(?im)\u00A7x(\u00A7([0-9a-f])){6}");
     private static final Pattern STRIP_COLOR_PATTERN = Pattern.compile("(?im)\u00A7[0-9a-fk-orx]");
 
-    private static final char COLOR_CHAR = '§';
+    private static final char COLOR_CHAR = '\u00A7';
     private static final char RAW_CHAR = '&';
 
-    private static final char[] BUFFER = new char[256];
+    // Hex color codes can get really fricking large
+    // uses about .0819 MB, or ~82 KB
+    private static final char[] BUFFER = new char[2048 * 10];
 
 
 
