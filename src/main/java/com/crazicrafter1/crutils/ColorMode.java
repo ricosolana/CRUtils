@@ -4,9 +4,10 @@ import java.util.function.Function;
 
 public enum ColorMode {
     AS_IS(s -> s),
-    RENDER(ColorUtil::render),
-    STRIP(ColorUtil::strip),
-    INVERT(ColorUtil::invert),
+    RENDER_MARKERS(ColorUtil::render),
+    STRIP_RENDERED(ColorUtil::strip),
+    STRIP_MARKERS(s -> ColorUtil.strip(s, true)),
+    INVERT_RENDERED(ColorUtil::invert),
     APPLY_GRADIENTS(ColorUtil::applyGradients),
     RENDER_ALL(ColorUtil::renderAll)
     ;

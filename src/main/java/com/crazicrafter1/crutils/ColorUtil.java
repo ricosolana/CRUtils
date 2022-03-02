@@ -33,6 +33,10 @@ public enum ColorUtil {
     static final char RENDER_CHAR = ChatColor.COLOR_CHAR;
 
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("#[0-9a-fA-F]{6}");
+
+    private static final Pattern LEGACY_MARK_PATTERN = Pattern.compile(MARK_CHAR + "[0-9a-fA-Fk-oK-OrR]");
+    private static final Pattern HEX_MARK_PATTERN = Pattern.compile("(?im)" + MARK_CHAR + HEX_COLOR_PATTERN);
+
     //private static final Pattern GRADIENT_HEX_PATTERN = Pattern.compile("<" + HEX_COLOR_PATTERN + "[^>]*>" +
     //        "(.*?)" +
     //        "</" + HEX_COLOR_PATTERN + ">");
@@ -727,20 +731,46 @@ public enum ColorUtil {
     public static String renderAll(@Nullable String s) {
         if (s == null) return null;
         s = applyGradients(s);
-        int size = render(s.toCharArray(), BUFFER, 0);
-        return new String(BUFFER, 0, size);
+        return render(s);
     }
 
     // todo fallback legacy colors for gradients or hex colors present on sub-1.16
 
     @Nullable
     @CheckReturnValue
-    public static String render(@Nullable String s) {
+    public static String render(@Nullable final String s) {
         if (s == null) return null;
-        int size = render(s.toCharArray(), BUFFER, 0);
-        return new String(BUFFER, 0, size);
+
+        StringBuilder builder = new StringBuilder(s);
+
+        Matcher matcher = HEX_MARK_PATTERN.matcher(builder);
+        while (matcher.find()) {
+            // &#123456
+            // §x§1§2§3§4§5§6
+            String group = matcher.group();
+            StringBuilder r = new StringBuilder("\u00A7x");
+            for (int i=2; i < 8; i++) {
+                r.append("\u00A7").append(group.charAt(i));
+            }
+            builder.replace(matcher.start(), matcher.end(), r.toString());
+            matcher = HEX_MARK_PATTERN.matcher(builder);
+        }
+
+        matcher = LEGACY_MARK_PATTERN.matcher(builder);
+        while (matcher.find()) {
+            // &c
+            // §c
+            builder.replace(matcher.start(), matcher.end() - 1, "\u00A7");
+            matcher = LEGACY_MARK_PATTERN.matcher(builder);
+        }
+
+        return builder.toString();
+
+        //int size = render(s.toCharArray(), BUFFER, 0);
+        //return new String(BUFFER, 0, size);
     }
 
+    @Deprecated
     @Nullable
     @CheckReturnValue
     public static String render_ThreadSafe(@Nullable String s) {
@@ -750,6 +780,7 @@ public enum ColorUtil {
         return new String(res, 0, offset);
     }
 
+    @Deprecated
     @CheckReturnValue
     public static int render(@Nonnull char[] in, @Nonnull char[] out, int outOffset) {
         int end = outOffset;

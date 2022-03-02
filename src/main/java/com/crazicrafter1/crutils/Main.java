@@ -2,6 +2,7 @@ package com.crazicrafter1.crutils;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
@@ -41,6 +42,8 @@ public class Main extends JavaPlugin {
         Main.instance = this;
 
         supportPlaceholders = getServer().getPluginManager().isPluginEnabled("PlaceholderAPI");
+
+        ConfigurationSerialization.registerClass(ItemBuilder.class, "ItemBuilder");
 
         new EventListener(this);
     }
