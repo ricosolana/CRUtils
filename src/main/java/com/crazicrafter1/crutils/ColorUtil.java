@@ -748,9 +748,9 @@ public enum ColorUtil {
             // &#123456
             // §x§1§2§3§4§5§6
             String group = matcher.group();
-            StringBuilder r = new StringBuilder("\u00A7x");
+            StringBuilder r = new StringBuilder(RENDER_CHAR + "x");
             for (int i=2; i < 8; i++) {
-                r.append("\u00A7").append(group.charAt(i));
+                r.append(RENDER_CHAR).append(group.charAt(i));
             }
             builder.replace(matcher.start(), matcher.end(), r.toString());
             matcher = HEX_MARK_PATTERN.matcher(builder);
@@ -760,7 +760,7 @@ public enum ColorUtil {
         while (matcher.find()) {
             // &c
             // §c
-            builder.replace(matcher.start(), matcher.end() - 1, "\u00A7");
+            builder.setCharAt(matcher.start(), RENDER_CHAR);
             matcher = LEGACY_MARK_PATTERN.matcher(builder);
         }
 
