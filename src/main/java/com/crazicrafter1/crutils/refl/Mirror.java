@@ -7,23 +7,23 @@ import java.lang.reflect.Method;
 
 public class Mirror {
 
-    static Class<?> CLASS_CraftItemStack;
-    static Class<?> CLASS_ItemStack;
-    static Class<?> CLASS_NBTTagCompound;
-    static Class<?> CLASS_NBTBase;
-    static Class<?> CLASS_NBTTagList;
+    public static Class<?> CLASS_CraftItemStack;
+    public static Class<?> CLASS_ItemStack;
+    public static Class<?> CLASS_NBTTagCompound;
+    public static Class<?> CLASS_NBTBase;
+    public static Class<?> CLASS_NBTTagList;
 
-    static Method METHOD_asNMSCopy;
-    static Method METHOD_asCraftMirror;
-    static Method METHOD_getTag;
-    static Method METHOD_setTag;
+    public static Method METHOD_asNMSCopy;
+    public static Method METHOD_asCraftMirror;
+    public static Method METHOD_getTag;
+    public static Method METHOD_setTag;
 
-    static Method METHOD_set;
-    static Method METHOD_setInt;
-    static Method METHOD_setDouble;
-    static Method METHOD_setString;
+    public static Method METHOD_set;
+    public static Method METHOD_setInt;
+    public static Method METHOD_setDouble;
+    public static Method METHOD_setString;
 
-    static Method METHOD_getString;
+    public static Method METHOD_getString;
     //static Method METHOD_add;
 
     static {

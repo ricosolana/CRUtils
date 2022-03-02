@@ -7,7 +7,6 @@ import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
-import org.bukkit.plugin.Plugin;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
@@ -28,6 +27,8 @@ import java.util.zip.ZipOutputStream;
 
 public enum Util {
     ;
+
+    private static final Pattern SEMVER_PATTERN = Pattern.compile("[0-9]+(\\.[0-9]+)+");
 
     public static boolean inRange(int i, int min, int max) {
         return i >= min && i <= max;
@@ -51,22 +52,17 @@ public enum Util {
         }.runTaskLater(Main.getInstance(), 1);
     }
 
-    /**
-     * Simply converts § to &
-     * @param itemStack
-     * @return
-     */
-    @Deprecated
-    public static String flattenedName(ItemStack itemStack, String def) {
-        ItemMeta meta = itemStack.getItemMeta();
-        if (meta != null) {
-            if (meta.hasDisplayName()) {
-                return ColorUtil.revert(meta.getDisplayName());
-            }
-            return meta.getLocalizedName();
-        }
-        return def;
-    }
+    //@Deprecated
+    //public static String flattenedName(ItemStack itemStack, String def) {
+    //    ItemMeta meta = itemStack.getItemMeta();
+    //    if (meta != null) {
+    //        if (meta.hasDisplayName()) {
+    //            return ColorUtil.revert(meta.getDisplayName());
+    //        }
+    //        return meta.getLocalizedName();
+    //    }
+    //    return def;
+    //}
 
     public static String punctuateAndGrammar(Material material) {
         // "GLASS_PANE"
@@ -85,26 +81,21 @@ public enum Util {
         return String.join(" ", split);
     }
 
-    /**
-     * Same as {@link @flattenedName} but lores are combined, and separated by a newline '\n' character
-     * @param itemStack
-     * @return
-     */
-    @Deprecated
-    public static String flattenedLore(ItemStack itemStack, String def) {
-        ItemMeta meta = itemStack.getItemMeta();
-        if (meta != null) {
-            List<String> loreList = meta.getLore();
-            if (loreList != null) {
-                StringBuilder builder = new StringBuilder();
-                for (String lore : loreList) {
-                    builder.append(ColorUtil.revert(lore)).append("\n");
-                }
-                return builder.toString();
-            }
-        }
-        return ColorUtil.revert(def);
-    }
+    //@Deprecated
+    //public static String flattenedLore(ItemStack itemStack, String def) {
+    //    ItemMeta meta = itemStack.getItemMeta();
+    //    if (meta != null) {
+    //        List<String> loreList = meta.getLore();
+    //        if (loreList != null) {
+    //            StringBuilder builder = new StringBuilder();
+    //            for (String lore : loreList) {
+    //                builder.append(ColorUtil.revert(lore)).append("\n");
+    //            }
+    //            return builder.toString();
+    //        }
+    //    }
+    //    return ColorUtil.revert(def);
+    //}
 
     public static String strDef(@Nullable String value, @Nonnull String defaultValue) {
         return value != null && !value.isEmpty() ? value : defaultValue;
@@ -113,34 +104,6 @@ public enum Util {
     public static <T> T def(@Nullable T value, @Nonnull T defaultValue) {
         return value != null ? value : defaultValue;
     }
-
-    /*
-    public static Color matchColor(String color) {
-        // Java 16 magic!
-
-
-        switch (color.toUpperCase()) {
-            case "BLUE": return Color.BLUE;
-            case "RED" -> Color.RED;
-            case "WHITE" -> Color.WHITE;
-            case "GRAY" -> Color.GRAY;
-            case "GREEN" -> Color.GREEN;
-            case "YELLOW" -> Color.YELLOW;
-            case "AQUA" -> Color.AQUA;
-            case "BLACK" -> Color.BLACK;
-            case "FUCHSIA" -> Color.FUCHSIA;
-            case "LIME" -> Color.LIME;
-            case "MAROON" -> Color.MAROON;
-            case "NAVY" -> Color.NAVY;
-            case "OLIVE" -> Color.OLIVE;
-            case "ORANGE" -> Color.ORANGE;
-            case "PURPLE" -> Color.PURPLE;
-            case "SILVER" -> Color.SILVER;
-            case "TEAL" -> Color.TEAL;
-            default -> null;
-        };
-    }
-     */
 
     public static int randomRange(int min, int max) {
         return min + (int)(Math.random() * ((max - min) + 1));
@@ -196,94 +159,6 @@ public enum Util {
         return text;
     }
 
-    /*
-    public static Enchantment matchEnchant(String enchant) {
-        String e = enchant.toUpperCase().replace(" ", "_");
-
-        return switch (e) {
-            case "ARROW_DAMAGE", "POWER" -> Enchantment.ARROW_DAMAGE;
-            case "ARROW_FIRE", "FLAME" -> Enchantment.ARROW_FIRE;
-            case "ARROW_INFINITE", "INFINITY" -> Enchantment.ARROW_INFINITE;
-            case "ARROW_KNOCKBACK", "PUNCH" -> Enchantment.ARROW_KNOCKBACK;
-            case "BINDING_CURSE", "CURSE_OF_BINDING" -> Enchantment.BINDING_CURSE;
-            case "CHANNELING" -> Enchantment.CHANNELING;
-            case "DAMAGE_ALL", "SHARPNESS" -> Enchantment.DAMAGE_ALL;
-            case "DAMAGE_ANTHROPODS", "BANE_OF_ANTHROPODS" -> Enchantment.DAMAGE_ARTHROPODS;
-            case "DAMAGE_UNDEAD", "SMITE" -> Enchantment.DAMAGE_UNDEAD;
-            case "DEPTH_STRIDER" -> Enchantment.DEPTH_STRIDER;
-            case "DIG_SPEED", "EFFICIENCY" -> Enchantment.DIG_SPEED;
-            case "DURABILITY", "UNBREAKING" -> Enchantment.DURABILITY;
-            case "FIRE_ASPECT" -> Enchantment.FIRE_ASPECT;
-            case "FROST_WALKER" -> Enchantment.FROST_WALKER;
-            case "IMPALING" -> Enchantment.IMPALING;
-            case "KNOCKBACK" -> Enchantment.KNOCKBACK;
-            case "LOOT_BONUS_BLOCKS", "FORTUNE" -> Enchantment.LOOT_BONUS_BLOCKS;
-            case "LOOT_BONUS_MOBS", "LOOTING" -> Enchantment.LOOT_BONUS_MOBS;
-            case "LOYALTY" -> Enchantment.LOYALTY;
-            case "LUCK", "LUCK_OF_THE_SEA" -> Enchantment.LUCK;
-            case "LURE" -> Enchantment.LURE;
-            case "MENDING" -> Enchantment.MENDING;
-            case "MULTISHOT" -> Enchantment.MULTISHOT;
-            case "OXYGEN", "RESPIRATION" -> Enchantment.OXYGEN;
-            case "PIERCING" -> Enchantment.PIERCING;
-            case "PROTECTION_ENVIRONMENTAL", "PROTECTION" -> Enchantment.PROTECTION_ENVIRONMENTAL;
-            case "PROTECTION_FIRE", "FIRE_PROTECTION" -> Enchantment.PROTECTION_FIRE;
-            case "PROTECTION_FALL", "FEATHER_FALLING" -> Enchantment.PROTECTION_FALL;
-            case "PROTECTION_EXPLOSIONS", "BLAST_PROTECTION" -> Enchantment.PROTECTION_EXPLOSIONS;
-            case "PROTECTION_PROJECTILE", "PROJECTILE_PROTECTION" -> Enchantment.PROTECTION_PROJECTILE;
-            case "QUICK_CHARGE" -> Enchantment.QUICK_CHARGE;
-            case "RIPTIDE" -> Enchantment.RIPTIDE;
-            case "SILK_TOUCH" -> Enchantment.SILK_TOUCH;
-            case "SOUL_SPEED" -> Enchantment.SOUL_SPEED;
-            case "SWEEPING_EDGE" -> Enchantment.SWEEPING_EDGE;
-            case "THORNS" -> Enchantment.THORNS;
-            case "VANISHING_CURSE", "CURSE_OF_VANISHING" -> Enchantment.VANISHING_CURSE;
-            case "WATER_WORKER", "AQUA_AFFINITY" -> Enchantment.WATER_WORKER;
-            default -> null;
-        };
-    }
-
-    public static PotionEffectType matchPotionEffectType(String effect) {
-        String e = effect.toUpperCase().replace(" ", "_");
-
-        return switch (e) {
-            case "ABSORPTION" -> PotionEffectType.ABSORPTION;
-            case "BAD_OMEN" -> PotionEffectType.BAD_OMEN;
-            case "BLINDNESS" -> PotionEffectType.BLINDNESS;
-            case "CONDUIT_POWER" -> PotionEffectType.CONDUIT_POWER;
-            case "CONFUSION", "NAUSEA" -> PotionEffectType.CONFUSION;
-            case "DAMAGE_RESISTANCE", "RESISTANCE" -> PotionEffectType.DAMAGE_RESISTANCE;
-            case "DOLPHINS_GRACE" -> PotionEffectType.DOLPHINS_GRACE;
-            case "FAST_DIGGING", "HASTE" -> PotionEffectType.FAST_DIGGING;
-            case "FIRE_RESISTANCE" -> PotionEffectType.FIRE_RESISTANCE;
-            case "GLOWING" -> PotionEffectType.GLOWING;
-            case "HARM", "INSTANT_DAMAGE" -> PotionEffectType.HARM;
-            case "HEAL", "INSTANT_HEALTH" -> PotionEffectType.HEAL;
-            case "HEALTH_BOOST" -> PotionEffectType.HEALTH_BOOST;
-            case "HERO_OF_THE_VILLAGE" -> PotionEffectType.HERO_OF_THE_VILLAGE;
-            case "HUNGER" -> PotionEffectType.HUNGER;
-            case "INCREASE_DAMAGE", "STRENGTH" -> PotionEffectType.INCREASE_DAMAGE;
-            case "INVISIBILITY" -> PotionEffectType.INVISIBILITY;
-            case "JUMP", "JUMP_BOOST" -> PotionEffectType.JUMP;
-            case "LEVITATION" -> PotionEffectType.LEVITATION;
-            case "LUCK" -> PotionEffectType.LUCK;
-            case "NIGHT_VISION" -> PotionEffectType.NIGHT_VISION;
-            case "POISON" -> PotionEffectType.POISON;
-            case "REGENERATION" -> PotionEffectType.REGENERATION;
-            case "SATURATION" -> PotionEffectType.SATURATION;
-            case "SLOW", "SLOWNESS" -> PotionEffectType.SLOW;
-            case "SLOW_DIGGING", "MINING_FATIGUE" -> PotionEffectType.SLOW_DIGGING;
-            case "SLOW_FALLING" -> PotionEffectType.SLOW_FALLING;
-            case "SPEED", "SWIFTNESS" -> PotionEffectType.SPEED;
-            case "UNLUCK", "BAD_LUCK" -> PotionEffectType.UNLUCK;
-            case "WATER_BREATHING" -> PotionEffectType.WATER_BREATHING;
-            case "WEAKNESS" -> PotionEffectType.WEAKNESS;
-            case "WITHER" -> PotionEffectType.WITHER;
-            default -> null;
-        };
-    }
-     */
-
     public static int clamp(int i, int a, int b) {
         return i < a ? a : Math.min(i, b);
     }
@@ -326,7 +201,6 @@ public enum Util {
         return false;
     }
 
-    private static final Pattern SEMVER_PATTERN = Pattern.compile("[0-9]+(\\.[0-9]+)+");
     public static boolean outdatedSemver(String baseVersion, String otherVersion) {
         if (baseVersion.equals(otherVersion))
             return false;
@@ -400,14 +274,18 @@ public enum Util {
     static Object ENUM_ADD_PLAYER;
 
     static {
-        CLASS_CraftPlayer = ReflectionUtil.getCraftBukkitClass("entity.CraftPlayer");
-        METHOD_getHandle = ReflectionUtil.getMethod(CLASS_CraftPlayer, "getHandle");
-        CLASS_EntityPlayer = METHOD_getHandle.getReturnType();
-        FIELD_playerConnection = ReflectionUtil.findFieldByType(CLASS_EntityPlayer, "PlayerConnection");
-        // get the PlayerConnection
-        CLASS_PlayerConnection = FIELD_playerConnection.getType();
-        //CLASS_Packet = ReflectionUtil.getNMClass("");
-        //METHOD_sendPacket = ReflectionUtil.getMethod(CLASS_PlayerConnection, "sendPacket", CLASS_Packet);
+        try {
+            CLASS_CraftPlayer = ReflectionUtil.getCraftBukkitClass("entity.CraftPlayer");
+            METHOD_getHandle = ReflectionUtil.getMethod(CLASS_CraftPlayer, "getHandle");
+            CLASS_EntityPlayer = METHOD_getHandle.getReturnType();
+            FIELD_playerConnection = ReflectionUtil.findFieldByType(CLASS_EntityPlayer, "PlayerConnection");
+            // get the PlayerConnection
+            CLASS_PlayerConnection = FIELD_playerConnection.getType();
+            //CLASS_Packet = ReflectionUtil.getNMClass("");
+            //METHOD_sendPacket = ReflectionUtil.getMethod(CLASS_PlayerConnection, "sendPacket", CLASS_Packet);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     // cast player to

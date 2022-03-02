@@ -4,9 +4,12 @@ import java.util.function.Function;
 
 public enum ColorMode {
     AS_IS(s -> s),
-    COLOR(ColorUtil::color),
+    RENDER(ColorUtil::render),
     STRIP(ColorUtil::strip),
-    REVERT(ColorUtil::revert);
+    INVERT(ColorUtil::invert),
+    APPLY_GRADIENTS(ColorUtil::applyGradients),
+    RENDER_ALL(ColorUtil::renderAll)
+    ;
 
     private final Function<String, String> formatFunction;
 

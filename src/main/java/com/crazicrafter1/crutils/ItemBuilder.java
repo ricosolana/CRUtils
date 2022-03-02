@@ -32,18 +32,13 @@ public class ItemBuilder {
 
     private final ItemStack itemStack;
 
-    private ItemBuilder(Material material) {
-        Validate.isTrue(material != Material.AIR);
-        this.itemStack = new ItemStack(material);
-    }
-
     private ItemBuilder(ItemStack itemStack) {
         Validate.isTrue(itemStack.getType() != Material.AIR && itemStack.getItemMeta() != null);
         this.itemStack = itemStack;
     }
 
     public static ItemBuilder copyOf(Material material) {
-        return new ItemBuilder(material);
+        return new ItemBuilder(new ItemStack(material));
     }
 
     public static ItemBuilder mutable(ItemStack itemStack) {
@@ -149,12 +144,12 @@ public class ItemBuilder {
      * @return {@link ItemBuilder} copy
      */
     @Nonnull
-    public ItemBuilder apply(@Nonnull ItemMeta other) {
+    public ItemBuilder combine(@Nonnull ItemMeta other) {
         if (other.hasDisplayName())
             this.name(other.getDisplayName());
         if (other.hasLore())
-            lore(other.getLore(), ColorMode.COLOR);
-        //return this.name(other.getDisplayName()).lore(other.getLore(), ColorMode.COLOR);
+            lore(other.getLore(), ColorMode.RENDER_ALL);
+
         return this;
     }
 
@@ -165,8 +160,8 @@ public class ItemBuilder {
      */
     @SuppressWarnings("ConstantConditions")
     @Nonnull
-    public ItemBuilder apply(@Nonnull ItemStack other) {
-        return apply(other.getItemMeta());
+    public ItemBuilder combine(@Nonnull ItemStack other) {
+        return combine(other.getItemMeta());
     }
 
     /**
@@ -175,8 +170,8 @@ public class ItemBuilder {
      * @return {@link ItemBuilder} this
      */
     @Nonnull
-    public ItemBuilder apply(@Nonnull ItemBuilder builder) {
-        return apply(builder.getMeta());
+    public ItemBuilder combine(@Nonnull ItemBuilder builder) {
+        return combine(builder.getMeta());
     }
 
     /**
@@ -184,8 +179,9 @@ public class ItemBuilder {
      * @return {@link ItemBuilder} this
      */
     @Nonnull
+    @Deprecated
     public ItemBuilder name2Lore() {
-        return name2Lore(null, ColorMode.COLOR);
+        return name2Lore(null, ColorMode.RENDER_ALL);
     }
 
     /**
@@ -194,8 +190,9 @@ public class ItemBuilder {
      * @return {@link ItemBuilder} this
      */
     @Nonnull
+    @Deprecated
     public ItemBuilder name2Lore(ColorMode mode) {
-        return name2Lore(null, ColorMode.COLOR);
+        return name2Lore(null, ColorMode.RENDER_ALL);
     }
 
     /**
@@ -204,8 +201,9 @@ public class ItemBuilder {
      * @return {@link ItemBuilder} this
      */
     @Nonnull
+    @Deprecated
     public ItemBuilder name2Lore(@Nullable String prepend) {
-        return name2Lore(prepend, ColorMode.COLOR);
+        return name2Lore(prepend, ColorMode.RENDER_ALL);
     }
 
     /**
@@ -215,6 +213,7 @@ public class ItemBuilder {
      * @return {@link ItemBuilder} this
      */
     @Nonnull
+    @Deprecated
     public ItemBuilder name2Lore(@Nullable String prepend, ColorMode mode) {
         String name = getName();
 
@@ -296,7 +295,7 @@ public class ItemBuilder {
      */
     @Nonnull
     public ItemBuilder name(@Nullable String name) {
-        return this.name(name, ColorMode.COLOR);
+        return this.name(name, ColorMode.RENDER_ALL);
     }
 
     /**
@@ -334,7 +333,7 @@ public class ItemBuilder {
      */
     @Nonnull
     public ItemBuilder lore(@Nullable String lore) {
-        return this.lore(lore, ColorMode.COLOR);
+        return this.lore(lore, ColorMode.RENDER_ALL);
     }
 
     @Nonnull
@@ -345,7 +344,7 @@ public class ItemBuilder {
 
     @Nonnull
     public ItemBuilder lore(@Nullable String... lore) {
-        return lore(ColorMode.COLOR, lore);
+        return lore(ColorMode.RENDER_ALL, lore);
     }
 
     @Nonnull
@@ -360,7 +359,7 @@ public class ItemBuilder {
 
     @Nonnull
     public ItemBuilder lore(@Nullable List<String> lore) {
-        return lore(lore, ColorMode.COLOR);
+        return lore(lore, ColorMode.RENDER_ALL);
     }
 
     @Nonnull
@@ -383,7 +382,7 @@ public class ItemBuilder {
      */
     @Nonnull
     public ItemBuilder resetLore() {
-        return lore((List<String>) null, ColorMode.COLOR);
+        return lore((List<String>) null, ColorMode.RENDER_ALL);
     }
 
     /**
@@ -554,7 +553,7 @@ public class ItemBuilder {
     public String getName() {
         ItemMeta meta = getMeta();
         if (meta.hasDisplayName())
-            return getMeta().getDisplayName();
+            return meta.getDisplayName();
         return null;
     }
 
@@ -647,8 +646,9 @@ public class ItemBuilder {
     }
 
     public int getModel() {
-        if (getMeta().hasCustomModelData())
-            return getMeta().getCustomModelData();
+        ItemMeta meta = getMeta();
+        if (meta.hasCustomModelData())
+            return meta.getCustomModelData();
         return -1;
     }
 
