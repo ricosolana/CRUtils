@@ -18,31 +18,14 @@ import static com.crazicrafter1.crutils.Util.clamp;
 public enum ColorUtil {
     ;
 
-    // todo in HEX or NAME gradient, fallback colors should be embedded into the markdown:
-    // <#123456>Lorem ipsum</789abc>
-    // to fallback to &a will be:
-    // <#123456,a>Lorem ipsum</789abc>
-
-    // todo nevermind the above
-    // instead color codes can be inserted directly into the string
-    // how to remove colors
-    // strip() removes formatted colors
-    // create a strip() that removes legacy markers (unformatted)
-
-    static final char MARK_CHAR = '&';
-    static final char RENDER_CHAR = ChatColor.COLOR_CHAR;
+    private static final char MARK_CHAR = '&';
+    private static final char RENDER_CHAR = ChatColor.COLOR_CHAR;
 
     private static final Pattern HEX_COLOR_PATTERN = Pattern.compile("#[0-9a-fA-F]{6}");
 
-    private static final Pattern LEGACY_MARK_PATTERN = Pattern.compile(MARK_CHAR + "[0-9a-fA-Fk-oK-OrR]");
-    private static final Pattern HEX_MARK_PATTERN = Pattern.compile("(?im)" + MARK_CHAR + HEX_COLOR_PATTERN);
+    //private static final Pattern LEGACY_MARK_PATTERN = Pattern.compile(MARK_CHAR + "[0-9a-fA-Fk-oK-OrR]");
+    //private static final Pattern HEX_MARK_PATTERN = Pattern.compile("(?im)" + MARK_CHAR + HEX_COLOR_PATTERN);
 
-    //private static final Pattern GRADIENT_HEX_PATTERN = Pattern.compile("<" + HEX_COLOR_PATTERN + "[^>]*>" +
-    //        "(.*?)" +
-    //        "</" + HEX_COLOR_PATTERN + ">");
-    //private static final Pattern GRADIENT_NAME_PATTERN = Pattern.compile("<[0-9a-zA-Z_']+[^>]*>(.*?)</[0-9a-zA-Z_]+>");
-
-    //<#[0-9a-fA-F]{6}[^>]*(,0-9a-fA-F)?>(.*?)<\/#[0-9a-fA-F]{6}>
     private static final Pattern GRADIENT_HEX_PATTERN = Pattern.compile("<" + HEX_COLOR_PATTERN + "[^>]*>" +
             "(.*?)" +
             "</" + HEX_COLOR_PATTERN + ">");
@@ -734,13 +717,12 @@ public enum ColorUtil {
         return render(s);
     }
 
-    // todo fallback legacy colors for gradients or hex colors present on sub-1.16
-
     @Nullable
     @CheckReturnValue
     public static String render(@Nullable final String s) {
         if (s == null) return null;
 
+        /*
         StringBuilder builder = new StringBuilder(s);
 
         Matcher matcher = HEX_MARK_PATTERN.matcher(builder);
@@ -765,12 +747,12 @@ public enum ColorUtil {
         }
 
         return builder.toString();
+         */
 
-        //int size = render(s.toCharArray(), BUFFER, 0);
-        //return new String(BUFFER, 0, size);
+        int size = render(s.toCharArray(), BUFFER, 0);
+        return new String(BUFFER, 0, size);
     }
 
-    @Deprecated
     @Nullable
     @CheckReturnValue
     public static String render_ThreadSafe(@Nullable String s) {
@@ -780,7 +762,6 @@ public enum ColorUtil {
         return new String(res, 0, offset);
     }
 
-    @Deprecated
     @CheckReturnValue
     public static int render(@Nonnull char[] in, @Nonnull char[] out, int outOffset) {
         int end = outOffset;
@@ -795,7 +776,19 @@ public enum ColorUtil {
             char c0 = in[i];
             if (c0 == MARK_CHAR && i+1 < length) {
                 char c1 = in[i + 1];
-                if (c1 == '#' && i+8 < length) {
+                if (c1 == '#' && i+7 < length) {
+                    // analyze the characters ahead of time
+                    // ... later
+                    // Assuming that the characters do not need to
+                    // be checked against during a '&#......' match,
+                    // because 99.99% of the time the characters are intended
+                    // to be converted into hex characters
+                    // just asking who would pass &#zztyui into this
+                    // function? such an extraneous value
+                    // this allows for performance in the long run
+                    // with the use of failsafe assumption
+
+
                     // Then scan assuming this branch will be taken
                     out[end++] = RENDER_CHAR;
                     out[end++] = 'x';
@@ -805,18 +798,19 @@ public enum ColorUtil {
                         out[end++] = in[i];
                         i++;
                     }
-                    out[end++] = in[i];
+                    i--;
+                    //out[end++] = in[i];
                     continue;
                 }
                 else if ((c1 >= '0' && c1 <= '9') || (c1 >= 'a' && c1 <= 'f') || (c1 >= 'k' && c1 <= 'o') || c1 == 'r') {
                     out[end++] = RENDER_CHAR;
-                    out[end++] = c1;    // TODO similar assign
+                    out[end++] = c1;
                     i++;
                     continue;
                 }
             }
 
-            out[end++] = c0;            // TODO similar assign
+            out[end++] = c0;
         }
 
         return end;
@@ -859,21 +853,21 @@ public enum ColorUtil {
     }
 
     @CheckReturnValue
-    public static int invert(@Nonnull char[] buf, @Nonnull char[] out, int outOffset) {
-        final int length = buf.length;
+    public static int invert(@Nonnull char[] in, @Nonnull char[] out, int outOffset) {
+        final int length = in.length;
 
         for (int i=0; i < length; i++) {
-            char c0 = buf[i];
+            char c0 = in[i];
             if (c0 == RENDER_CHAR && i+1 < length) {
-                char c1 = buf[i+1];
+                char c1 = in[i+1];
 
-                if (c1 == 'x' && i+14 < length) {
+                if (c1 == 'x' && i+13 < length) {
                     // HEX
                     out[outOffset++] = MARK_CHAR;
                     out[outOffset++] = '#';
                     i++;
                     for (int w = 0; w < 6; w++) {
-                        BUFFER[outOffset++] = buf[i+=2];
+                        out[outOffset++] = in[i+=2];
                     }
 
                     continue;
@@ -924,17 +918,17 @@ public enum ColorUtil {
     }
 
     @CheckReturnValue
-    public static int strip(@Nonnull char[] buf, @Nonnull char[] out, int outOffset, boolean removeMarkersOnly) {
-        final int length = buf.length;
+    public static int strip(@Nonnull char[] in, @Nonnull char[] out, int outOffset, boolean removeMarkersOnly) {
+        final int length = in.length;
 
         for (int i=0; i < length; i++) {
-            char c0 = buf[i];
+            char c0 = in[i];
             if (((c0 == RENDER_CHAR && !removeMarkersOnly)
                     || (c0 == MARK_CHAR && removeMarkersOnly))
                     && i+1 < length) {
-                char c1 = buf[i+1];
+                char c1 = in[i+1];
 
-                if (c1 == 'x' && i+14 < length) {
+                if (c1 == 'x' && i+13 < length) {
                     // HEX
                     i+=13;
 
@@ -949,7 +943,7 @@ public enum ColorUtil {
                 }
             }
 
-            BUFFER[outOffset++] = c0;
+            out[outOffset++] = c0;
         }
         return outOffset;
     }
@@ -986,8 +980,9 @@ public enum ColorUtil {
 
             // If version less than 1.16
             // then instead keep optional embedded legacy codes
+            String text = group.substring(9, group.length() - 10);
             if (Version.AT_LEAST_v1_16.a()) {
-                String text = strip(group.substring(9, group.length() - 10), true);
+                text = strip(text, true);
                 Color start = toColor(group.substring(2, 8));
                 Color end = toColor(group.substring(group.length() - 7, group.length() - 1));
 
@@ -995,10 +990,6 @@ public enum ColorUtil {
                 builder.replace(matcher.start(), matcher.end(),
                         applyEdgeColors(text, start, end) + "&7");
             } else {
-                String text = group.substring(9, group.length() - 10);
-                //Color start = toColor(group.substring(2, 8));
-                //Color end = toColor(group.substring(group.length() - 7, group.length() - 1));
-
                 builder.replace(matcher.start(), matcher.end(), text + "&7");
             }
             matcher = GRADIENT_HEX_PATTERN.matcher(builder);
@@ -1041,7 +1032,6 @@ public enum ColorUtil {
 
     /**
      * Linearly apply an array of colors comprised of gradients across an input string, resulting in a hex marked string
-     * todo Fallbacks will default to the legacy color which most closely represents the inputted color
      * @param in the input string
      * @param colors the gradients
      * @return the hex marked string
