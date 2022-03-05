@@ -1,15 +1,13 @@
 package com.crazicrafter1.crutils;
 
+import com.google.common.collect.ImmutableMap;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -31,15 +29,22 @@ public enum ColorUtil {
             "</" + HEX_COLOR_PATTERN + ">");
     private static final Pattern GRADIENT_NAME_PATTERN = Pattern.compile("<[0-9a-zA-Z_']+[^>]*>(.*?)</[0-9a-zA-Z_]+>");
 
-    private static final Map<String, Color> COLOR_MAP = new HashMap<>();
+    private static final Pattern GRADIENT_PATTERN
+            = Pattern.compile("<(" + HEX_COLOR_PATTERN + "|[0-9a-zA-Z_']+)[^>]*>" +
+            "(.*?)" +
+            "</(" + HEX_COLOR_PATTERN + "|[0-9a-zA-Z_]+)>");
 
-    private static void putAllColors(Object... values) {
+    public static final Map<String, Color> COLORS;//new HashMap<>();
+
+    private static Map<String, Color> putAllColors(Object... values) {
+        Map<String, Color> map = new HashMap<>();
         for (int i=0; i<values.length; i+=2) {
-            COLOR_MAP.put((String)values[i], Color.fromRGB((int)values[i+1]));
+            map.put((String)values[i], Color.fromRGB((int)values[i+1]));
         }
+        return ImmutableMap.copyOf(map);
     }
     static {
-        putAllColors(
+        COLORS = putAllColors(
                 "ABSOLUTE_ZERO", 0x0048BA,
                 "ACID_GREEN", 0xB0BF1A,
                 "AERO", 0x7CB9E8,
@@ -349,6 +354,209 @@ public enum ColorUtil {
                 "FUCHSIA_ROSE", 0xC74375,
                 "FULVOUS", 0xE48400,
                 "FUZZY_WUZZY", 0x87421F,
+                "GAINSBORO", 0xDCDCDC,
+                "GAMBOGE", 0xE49B0F,
+                "GENERIC_VIRIDIAN", 0x007F66,
+                "GHOST_WHITE", 0xF8F8FF,
+                "GLAUCOUS", 0x6082B6,
+                "GLOSSY_GRAPE", 0xAB92B3,
+                "GO_GREEN", 0x00AB66,
+                "GOLD", 0xA57C00,
+                "GOLD_FUSION", 0x85754E,
+                "GOLDEN_BROWN", 0x996515,
+                "GOLDEN_POPPY", 0xFCC200,
+                "GOLDEN_YELLOW", 0xFFDF00,
+                "GOLDENROD", 0xDAA520,
+                "GOTHAM_GREEN", 0x00573F,
+                "GRANITE_GRAY", 0x676767,
+                "GRANNY_SMITH_APPLE", 0xA8E4A0,
+                "GREEN", 0x00FF00,
+                "GREEN-BLUE", 0x1164B4,
+                "GREEN-CYAN", 0x009966,
+                "GREEN_LIZARD", 0xA7F432,
+                "GREEN_SHEEN", 0x6EAEA1,
+                "GREEN-YELLOW", 0xADFF2F,
+                "GRULLO", 0xA99A86,
+                "GUNMETAL", 0x2a3439,
+                "HAN_BLUE", 0x446CCF,
+                "HAN_PURPLE", 0x5218FA,
+                "HANSA_YELLOW", 0xE9D66B,
+                "HARLEQUIN", 0x3FFF00,
+                "HARVEST_GOLD", 0xDA9100,
+                "HEAT_WAVE", 0xFF7A00,
+                "HELIOTROPE", 0xDF73FF,
+                "HELIOTROPE_GRAY", 0xAA98A9,
+                "HOLLYWOOD_CERISE", 0xF400A1,
+                "HONEYDEW", 0xF0FFF0,
+                "HONOLULU_BLUE", 0x006DB0,
+                "HOOKER'S_GREEN", 0x49796B,
+                "HOT_MAGENTA", 0xFF1DCE,
+                "HOT_PINK", 0xFF69B4,
+                "HUNTER_GREEN", 0x355E3B,
+                "ICEBERG", 0x71A6D2,
+                "ICTERINE", 0xFCF75E,
+                "ILLUMINATING_EMERALD", 0x319177,
+                "IMPERIAL_RED", 0xED2939,
+                "INCHWORM", 0xB2EC5D,
+                "INDEPENDENCE", 0x4C516D,
+                "INDIA_GREEN", 0x138808,
+                "INDIAN_RED", 0xCD5C5C,
+                "INDIAN_YELLOW", 0xE3A857,
+                "INDIGO", 0x4B0082,
+                "INDIGO_DYE", 0x00416A,
+                "INFRARED", 0xFF496C,
+                "INTERNATIONAL_KLEIN_BLUE", 0x130a8f,
+                "IRIS", 0x5A4FCF,
+                "IRRESISTIBLE", 0xB3446C,
+                "ISABELLINE", 0xF4F0EC,
+                "ITALIAN_SKY_BLUE", 0xB2FFFF,
+                "IVORY", 0xFFFFF0,
+                "JADE", 0x00A86B,
+                "JAPANESE_CARMINE", 0x9D2933,
+                "JAPANESE_VIOLET", 0x5B3256,
+                "JASMINE", 0xF8DE7E,
+                "JAZZBERRY_JAM", 0xA50B5E,
+                "JET", 0x343434,
+                "JONQUIL", 0xF4CA16,
+                "JUNE_BUD", 0xBDDA57,
+                "JUNGLE_GREEN", 0x29AB87,
+                "KELLY_GREEN", 0x4CBB17,
+                "KEPPEL", 0x3AB09E,
+                "KEY_LIME", 0xE8F48C,
+                "KOBE", 0x882D17,
+                "KOBI", 0xE79FC4,
+                "KOBICHA", 0x6B4423,
+                "KOMBU_GREEN", 0x354230,
+                "KSU_PURPLE", 0x512888,
+                "LANGUID_LAVENDER", 0xD6CADD,
+                "LAPIS_LAZULI", 0x26619C,
+                "LASER_LEMON", 0xFFFF66,
+                "LAUREL_GREEN", 0xA9BA9D,
+                "LAVA", 0xCF1020,
+                "LAVENDER_BLUE", 0xCCCCFF,
+                "LAVENDER_BLUSH", 0xFFF0F5,
+                "LAVENDER_GRAY", 0xC4C3D0,
+                "LAWN_GREEN", 0x7CFC00,
+                "LEMON", 0xFFF700,
+                "LEMON_CHIFFON", 0xFFFACD,
+                "LEMON_CURRY", 0xCCA01D,
+                "LEMON_GLACIER", 0xFDFF00,
+                "LEMON_MERINGUE", 0xF6EABE,
+                "LEMON_YELLOW", 0xFFF44F,
+                "LIBERTY", 0x545AA7,
+                "LIGHT_BLUE", 0xADD8E6,
+                "LIGHT_CORAL", 0xF08080,
+                "LIGHT_CORNFLOWER_BLUE", 0x93CCEA,
+                "LIGHT_CYAN", 0xE0FFFF,
+                "LIGHT_FRENCH_BEIGE", 0xC8AD7F,
+                "LIGHT_GOLDENROD_YELLOW", 0xFAFAD2,
+                "LIGHT_GRAY", 0xD3D3D3,
+                "LIGHT_GREEN", 0x90EE90,
+                "LIGHT_ORANGE", 0xFED8B1,
+                "LIGHT_PERIWINKLE", 0xC5CBE1,
+                "LIGHT_PINK", 0xFFB6C1,
+                "LIGHT_SALMON", 0xFFA07A,
+                "LIGHT_SEA_GREEN", 0x20B2AA,
+                "LIGHT_SKY_BLUE", 0x87CEFA,
+                "LIGHT_SLATE_GRAY", 0x778899,
+                "LIGHT_STEEL_BLUE", 0xB0C4DE,
+                "LIGHT_YELLOW", 0xFFFFE0,
+                "LILAC", 0xC8A2C8,
+                "LILAC_LUSTER", 0xAE98AA,
+                "LIME_GREEN", 0x32CD32,
+                "LINCOLN_GREEN", 0x195905,
+                "LINEN", 0xFAF0E6,
+                "LION", 0xC19A6B,
+                "LISERAN_PURPLE", 0xDE6FA1,
+                "LITTLE_BOY_BLUE", 0x6CA0DC,
+                "LIVER", 0x674C47,
+                "LIVER_CHESTNUT", 0x987456,
+                "LIVID", 0x6699CC,
+                "MACARONI_AND_CHEESE", 0xFFBD88,
+                "MADDER_LAKE", 0xCC3336,
+                "MAGENTA", 0xFF00FF,
+                "MAGENTA_HAZE", 0x9F4576,
+                "MAGIC_MINT", 0xAAF0D1,
+                "MAGNOLIA", 0xF2E8D7,
+                "MAHOGANY", 0xC04000,
+                "MAIZE", 0xFBEC5D,
+                "MAJORELLE_BLUE", 0x6050DC,
+                "MALACHITE", 0x0BDA51,
+                "MANATEE", 0x979AAA,
+                "MANDARIN", 0xF37A48,
+                "MANGO", 0xFDBE02,
+                "MANGO_TANGO", 0xFF8243,
+                "MANTIS", 0x74C365,
+                "MARDI_GRAS", 0x880085,
+                "MARIGOLD", 0xEAA221,
+                "MAUVE", 0xE0B0FF,
+                "MAUVE_TAUPE", 0x915F6D,
+                "MAUVELOUS", 0xEF98AA,
+                "MAXIMUM_BLUE", 0x47ABCC,
+                "MAXIMUM_BLUE_GREEN", 0x30BFBF,
+                "MAXIMUM_BLUE_PURPLE", 0xACACE6,
+                "MAXIMUM_GREEN", 0x5E8C31,
+                "MAXIMUM_GREEN_YELLOW", 0xD9E650,
+                "MAXIMUM_PURPLE", 0x733380,
+                "MAXIMUM_RED", 0xD92121,
+                "MAXIMUM_RED_PURPLE", 0xA63A79,
+                "MAXIMUM_YELLOW", 0xFAFA37,
+                "MAXIMUM_YELLOW_RED", 0xF2BA49,
+                "MAY_GREEN", 0x4C9141,
+                "MAYA_BLUE", 0x73C2FB,
+                "MEDIUM_AQUAMARINE", 0x66DDAA,
+                "MEDIUM_BLUE", 0x0000CD,
+                "MEDIUM_CANDY_APPLE_RED", 0xE2062C,
+                "MEDIUM_CARMINE", 0xAF4035,
+                "MEDIUM_CHAMPAGNE", 0xF3E5AB,
+                "MEDIUM_ORCHID", 0xBA55D3,
+                "MEDIUM_PURPLE", 0x9370DB,
+                "MEDIUM_SEA_GREEN", 0x3CB371,
+                "MEDIUM_SLATE_BLUE", 0x7B68EE,
+                "MEDIUM_SPRING_GREEN", 0x00FA9A,
+                "MEDIUM_TURQUOISE", 0x48D1CC,
+                "MEDIUM_VIOLET-RED", 0xC71585,
+                "MELLOW_APRICOT", 0xF8B878,
+                "MELLOW_YELLOW", 0xF8DE7E,
+                "MELON", 0xFEBAAD,
+                "METALLIC_GOLD", 0xD3AF37,
+                "METALLIC_SEAWEED", 0x0A7E8C,
+                "METALLIC_SUNBURST", 0x9C7C38,
+                "MEXICAN_PINK", 0xE4007C,
+                "MIDDLE_BLUE", 0x7ED4E6,
+                "MIDDLE_BLUE_GREEN", 0x8DD9CC,
+                "MIDDLE_BLUE_PURPLE", 0x8B72BE,
+                "MIDDLE_GREY", 0x8B8680,
+                "MIDDLE_GREEN", 0x4D8C57,
+                "MIDDLE_GREEN_YELLOW", 0xACBF60,
+                "MIDDLE_PURPLE", 0xD982B5,
+                "MIDDLE_RED", 0xE58E73,
+                "MIDDLE_RED_PURPLE", 0xA55353,
+                "MIDDLE_YELLOW", 0xFFEB00,
+                "MIDDLE_YELLOW_RED", 0xECB176,
+                "MIDNIGHT", 0x702670,
+                "MIDNIGHT_BLUE", 0x191970,
+                "MIKADO_YELLOW", 0xFFC40C,
+                "MIMI_PINK", 0xFFDAE9,
+                "MINDARO", 0xE3F988,
+                "MING", 0x36747D,
+                "MINION_YELLOW", 0xF5E050,
+                "MINT", 0x3EB489,
+                "MINT_CREAM", 0xF5FFFA,
+                "MINT_GREEN", 0x98FF98,
+                "MISTY_MOSS", 0xBBB477,
+                "MISTY_ROSE", 0xFFE4E1,
+                "MODE_BEIGE", 0x967117,
+                "MORNING_BLUE", 0x8DA399,
+                "MOSS_GREEN", 0x8A9A5B,
+                "MOUNTAIN_MEADOW", 0x30BA8F,
+                "MOUNTBATTEN_PINK", 0x997A8D,
+                "MSU_GREEN", 0x18453B,
+                "MULBERRY", 0xC54B8C,
+                "MUSTARD", 0xFFDB58,
+                "MYRTLE_GREEN", 0x317873,
+                "MYSTIC", 0xD65282,
+                "MYSTIC_MAROON", 0xAD4379,
                 "NADESHIKO_PINK", 0xF6ADC6,
                 "NAPLES_YELLOW", 0xFADA5E,
                 "NAVAJO_WHITE", 0xFFDEAD,
@@ -372,7 +580,7 @@ public enum ColorUtil {
                 "OLD_ROSE", 0xC08081,
                 "OLD_SILVER", 0x848482,
                 "OLIVE", 0x808000,
-                "OLIVE_DRAB", 0x6B8E23,
+                "OLIVE_DRAB", 0x3C341F,
                 "OLIVE_GREEN", 0xB5B35C,
                 "OLIVINE", 0x9AB973,
                 "ONYX", 0x353839,
@@ -713,7 +921,7 @@ public enum ColorUtil {
     @CheckReturnValue
     public static String renderAll(@Nullable String s) {
         if (s == null) return null;
-        s = applyGradients(s);
+        s = applyGradients(s); //applyHexAndNameGradients(s);
         return render(s);
     }
 
@@ -961,12 +1169,60 @@ public enum ColorUtil {
      */
     @Nonnull
     @CheckReturnValue
-    public static String applyGradients(@Nonnull final String in) {
+    @Deprecated
+    public static String applyHexAndNameGradients(@Nonnull final String in) {
         return ColorUtil.applyNameGradients(ColorUtil.applyHexGradients(in));
+    }
+
+    @Nullable
+    @CheckReturnValue
+    public static String applyGradients(@Nullable final String in) {
+        if (in == null)
+            return null;
+
+        StringBuilder builder = new StringBuilder(in.length()*15).append(in);
+
+        Matcher matcher = GRADIENT_PATTERN.matcher(builder);
+        while (matcher.find()) {
+            String group = builder.substring(matcher.start(), matcher.end());
+
+            int ar1 = group.indexOf(">");
+            int ar2 = group.lastIndexOf("<");
+
+            String text = strip(group.substring(ar1+1, ar2), true);
+
+            // If version less than 1.16
+            // then instead keep optional embedded legacy codes
+            if (Version.AT_LEAST_v1_16.a()) {
+                final Color start;
+                if (group.charAt(1) == '#')
+                    start = toColor(group.substring(2, 8));
+                else
+                    start = COLORS.get(group.substring(1, ar1));
+
+                final Color end;
+                int lastHash = group.indexOf("#", ar2);
+                if (lastHash != -1)
+                    end = toColor(group.substring(lastHash + 1, lastHash + 7));
+                else
+                    end = COLORS.get(group.substring(ar2 + 2, group.length() - 1));
+
+                if (start != null && end != null) {
+                    builder.replace(matcher.start(), matcher.end(),
+                            applyEdgeColors(text, start, end));
+                } else builder.replace(matcher.start(), matcher.end(), text);
+            } else
+                builder.replace(matcher.start(), matcher.end(), text);
+
+            matcher = GRADIENT_PATTERN.matcher(builder);
+        }
+
+        return builder.toString();
     }
 
     @Nonnull
     @CheckReturnValue
+    @Deprecated
     public static String applyHexGradients(@Nonnull final String in) {
 
         StringBuilder builder = new StringBuilder(in.length()*15).append("&7").append(in);
@@ -1000,6 +1256,7 @@ public enum ColorUtil {
 
     @Nonnull
     @CheckReturnValue
+    @Deprecated
     public static String applyNameGradients(@Nonnull final String in) {
 
         StringBuilder builder = new StringBuilder(in.length()*15).append("&7").append(in);
@@ -1012,8 +1269,8 @@ public enum ColorUtil {
 
             if (Version.AT_LEAST_v1_16.a()) {
                 String text = strip(group.substring(group.indexOf(">") + 1, group.lastIndexOf("<")), true);
-                Color start = COLOR_MAP.get(group.substring(1, group.indexOf(">")));
-                Color end = COLOR_MAP.get(group.substring(group.lastIndexOf("<") + 2, group.length() - 1));
+                Color start = COLORS.get(group.substring(1, group.indexOf(">")));
+                Color end = COLORS.get(group.substring(group.lastIndexOf("<") + 2, group.length() - 1));
 
                 if (start != null && end != null) {
                     builder.replace(matcher.start(), matcher.end(),
