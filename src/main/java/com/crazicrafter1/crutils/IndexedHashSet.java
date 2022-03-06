@@ -1,6 +1,7 @@
 package com.crazicrafter1.crutils;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 

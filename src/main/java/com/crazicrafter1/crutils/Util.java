@@ -30,11 +30,7 @@ public enum Util {
 
     private static final Pattern SEMVER_PATTERN = Pattern.compile("[0-9]+(\\.[0-9]+)+");
 
-    public static boolean inRange(int i, int min, int max) {
-        return i >= min && i <= max;
-    }
-
-    public static void giveItemToPlayer(Player p, ItemStack item) {
+    public static void give(Player p, ItemStack item) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -49,99 +45,16 @@ public enum Util {
                     }
                 }
             }
-        }.runTaskLater(Main.getInstance(), 1);
+        }.runTask(Main.getInstance());
     }
-
-    //@Deprecated
-    //public static String flattenedName(ItemStack itemStack, String def) {
-    //    ItemMeta meta = itemStack.getItemMeta();
-    //    if (meta != null) {
-    //        if (meta.hasDisplayName()) {
-    //            return ColorUtil.revert(meta.getDisplayName());
-    //        }
-    //        return meta.getLocalizedName();
-    //    }
-    //    return def;
-    //}
-
-    public static String punctuateAndGrammar(Material material) {
-        // "GLASS_PANE"
-        String sub = material.name();
-
-        // "glass pane"
-        sub = sub.toLowerCase().replace("_", " ");
-
-        // {"glass", "pane"}
-        String[] split = sub.split(" ");
-        for (int i=0; i < split.length; i++) {
-            // {"Glass", "Pane"}
-            split[i] = split[i].substring(0, 1).toUpperCase() + split[i].substring(1);
-        }
-
-        return String.join(" ", split);
-    }
-
-    //@Deprecated
-    //public static String flattenedLore(ItemStack itemStack, String def) {
-    //    ItemMeta meta = itemStack.getItemMeta();
-    //    if (meta != null) {
-    //        List<String> loreList = meta.getLore();
-    //        if (loreList != null) {
-    //            StringBuilder builder = new StringBuilder();
-    //            for (String lore : loreList) {
-    //                builder.append(ColorUtil.revert(lore)).append("\n");
-    //            }
-    //            return builder.toString();
-    //        }
-    //    }
-    //    return ColorUtil.revert(def);
-    //}
 
     public static String strDef(@Nullable String value, @Nonnull String defaultValue) {
-        return value != null && !value.isEmpty() ? value : defaultValue;
+        return value == null || value.isEmpty()
+                ? defaultValue : value;
     }
 
     public static <T> T def(@Nullable T value, @Nonnull T defaultValue) {
         return value != null ? value : defaultValue;
-    }
-
-    public static int randomRange(int min, int max) {
-        return min + (int)(Math.random() * ((max - min) + 1));
-    }
-
-    public static int randomRange(int min, int max, int min1, int max1) {
-        if ((int)(Math.random()*2) == 0)
-            return min + (int)(Math.random() * ((max - min) + 1));
-        return min1 + (int)(Math.random() * ((max1 - min1) + 1));
-    }
-
-    public static int randomRange(int min, int max, Random random)
-    {
-        return random.nextInt((max - min) + 1) + min;
-    }
-
-    /**
-     * Returns a chance
-     * @param i [0, 1]
-     * @return whether 'i' exceeded a chance
-     */
-    public static boolean randomChance(float i) {
-        return i >= Math.random();
-    }
-
-    @Deprecated
-    public static boolean randomChance(float i, Random random) {
-        return i <= (float)randomRange(0, 100, random) / 100f;
-    }
-
-    public static int sqDist(int x1, int y1, int x2, int y2) {
-        return (x1-x2)*(x1-x2) + (y1-y2)*(y1-y2);
-    }
-
-    public static String macro(String str, String delim, String match, String value) {
-        if (str == null)
-            return null;
-        return str.replace(delim + match + delim, value);
     }
 
     /**
@@ -157,10 +70,6 @@ public enum Util {
             return PlaceholderAPI.setPlaceholders(p, text);
         }
         return text;
-    }
-
-    public static int clamp(int i, int a, int b) {
-        return i < a ? a : Math.min(i, b);
     }
 
     public static long copy(InputStream in, OutputStream out) throws IOException {
@@ -179,18 +88,18 @@ public enum Util {
         return bytes;
     }
 
-    public static boolean backupZip(File input, File output) {
+    public static boolean zip(File in, File out) {
         /// Only if a backup failed for an existing File, then FAIL
         try {
-            if (!(input.exists() && input.isFile()))
+            if (!(in.exists() && in.isFile()))
                 return true;
 
-            output.getParentFile().mkdirs();
+            out.getParentFile().mkdirs();
 
-            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(output));
-            zipOut.putNextEntry(new ZipEntry(input.getName()));
+            ZipOutputStream zipOut = new ZipOutputStream(new FileOutputStream(out));
+            zipOut.putNextEntry(new ZipEntry(in.getName()));
 
-            byte[] bytes = Files.readAllBytes(input.toPath());
+            byte[] bytes = Files.readAllBytes(in.toPath());
             zipOut.write(bytes, 0, bytes.length);
 
             zipOut.close();
@@ -231,9 +140,7 @@ public enum Util {
         return false;
     }
 
-    /**
-     * Untested, needs testing
-     */
+    // TODO untested
     @Deprecated
     static void downloadURLAsFile(String link, String out) {
         try {
@@ -287,8 +194,6 @@ public enum Util {
             e.printStackTrace();
         }
     }
-
-    // cast player to
 
     private static String getStringFromURL(String url) {
         StringBuilder text = new StringBuilder();

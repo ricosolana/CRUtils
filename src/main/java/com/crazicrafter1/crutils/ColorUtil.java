@@ -8,13 +8,32 @@ import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.crazicrafter1.crutils.Util.clamp;
+import static com.crazicrafter1.crutils.MathUtil.clamp;
 
 public enum ColorUtil {
+    AS_IS(s -> s),
+    RENDER_MARKERS(ColorUtil::renderMarkers),
+    STRIP_RENDERED(ColorUtil::stripRendered),
+    STRIP_MARKERS(ColorUtil::stripMarkers),
+    INVERT_RENDERED(ColorUtil::invertRendered),
+    APPLY_GRADIENTS(ColorUtil::applyGradients),
+    RENDER_ALL(ColorUtil::renderAll)
     ;
+
+    private final Function<String, String> formatFunction;
+
+    ColorUtil(Function<String, String> formatFunction) {
+        this.formatFunction = formatFunction;
+    }
+
+    public String a(String s) {
+        return formatFunction.apply(s);
+    }
+
 
     private static final char MARK_CHAR = '&';
     private static final char RENDER_CHAR = ChatColor.COLOR_CHAR;
@@ -906,6 +925,170 @@ public enum ColorUtil {
 
     private static final char[] BUFFER = new char[2048 * 10];
 
+    private static class ColoredChar {
+        private String color;
+
+        private boolean reset;
+        public boolean italic;
+        public boolean bold;
+        public boolean underline;
+        public boolean obfuscated;
+        public boolean strikethrough;
+
+        public ColoredChar() {
+            reset();
+        }
+
+        public void reset() {
+            color = null;
+
+            reset = true;
+            italic = false;
+            bold = false;
+            underline = false;
+            obfuscated = false;
+            strikethrough = false;
+        }
+
+        public void format(char f) {
+            switch (f) {
+                case 'k': obfuscated = true; break;
+                case 'l': bold = true; break;
+                case 'm': strikethrough = true; break;
+                case 'n': underline = true; break;
+                case 'o': italic = true; break;
+            }
+        }
+
+        public boolean isReset() {
+            return reset;
+        }
+
+        public String getColor() {
+            return color;
+        }
+
+        public void color(String color) {
+            this.color = color;
+            reset = false;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (!(obj instanceof ColoredChar))
+                return false;
+
+            ColoredChar o = (ColoredChar) obj;
+
+            if (reset && o.reset)
+                return true;
+
+            return String.valueOf(color).equals(o.color)
+                && italic == o.italic
+                && bold == o.bold
+                && underline == o.underline
+                && obfuscated == o.obfuscated
+                && strikethrough == o.strikethrough;
+        }
+    }
+
+    /**
+     * Eliminates any Redundant or useless color codes
+     *  - Duplicated or consecutive colors
+     *  - Overridden color codes that change nothing
+     *  - Color codes that change nothing
+     * @param s
+     * @return
+     */
+    public static String eraseRepeatMarkers(String s) {
+        //&7&7&7&7
+        // Options:
+        //  - could use regex
+        //  - could use a loop and manual replace
+        //  - could brute force, using a per-character
+        //      color applicator to detect differences in string
+        //      if color changes
+
+
+        char[] in = s.toCharArray();
+
+        StringBuilder result = new StringBuilder();
+
+        final int length = in.length;
+        //ArrayList<ColoredChar> allFormatted = new ArrayList<>(length);
+
+        ColoredChar streamingColor = new ColoredChar();
+
+        char lastValidChar = '\0'; // null
+        int lastValidIndex = -1; // null
+
+        // Fox
+        // The fox
+        // &6The fox
+        // &6The &6fox
+        // &6&6The fox          If no change, remove
+
+        for (int i=0; i < length; i++) {
+            // determine whether HEX char
+
+            // & # 0 8 4 c f b H
+            // 0 1 2 3 4 5 6 7 8
+            char c0 = in[i];
+            if (c0 == MARK_CHAR && i+1 < length) {
+                char c1 = in[i + 1];
+                if (c1 == '#' && i+7 < length) {
+                    ColoredChar currentColor = new ColoredChar();
+                    currentColor.color(new String(in, i, 8));
+                    i+=7;
+
+                    // If this new color denotes a change, then apply the change
+                    if (!currentColor.equals(streamingColor)) {
+                        streamingColor.color(currentColor.getColor());
+                        result.append(currentColor.getColor());
+                    }
+                    continue;
+                }
+                else if ((c1 >= '0' && c1 <= '9') || (c1 >= 'a' && c1 <= 'f')) {
+                    ColoredChar currentColor = new ColoredChar();
+                    currentColor.color("&" + c1);
+                    i++;
+
+                    if (!currentColor.equals(streamingColor)) {
+                        streamingColor.color(currentColor.getColor());
+                        result.append(currentColor.getColor());
+                    }
+
+                    continue;
+                } else if ((c1 >= 'k' && c1 <= 'o')) {
+                    ColoredChar currentColor = new ColoredChar();
+                    currentColor.format(c1);
+                    i++;
+
+                    if (!currentColor.equals(streamingColor)) {
+                        streamingColor.format(c1);
+                        result.append("&").append(c1);
+                    }
+
+                    continue;
+                } else if (c1 == 'r') {
+                    // apply a reset
+                    // add a reset token?
+                    streamingColor.reset();
+                    result.append("&").append("r");
+                    i++;
+                    continue;
+                }
+            }
+
+            lastValidChar = c0;
+            result.append(c0);
+        }
+
+        return result.toString();
+    }
+
+
+
     /* * * * * * * * * * * * * * * * * * * * * * * *
      *                                             *
      *                  renderers                  *
@@ -922,56 +1105,29 @@ public enum ColorUtil {
     public static String renderAll(@Nullable String s) {
         if (s == null) return null;
         s = applyGradients(s); //applyHexAndNameGradients(s);
-        return render(s);
+        return renderMarkers(s);
     }
 
     @Nullable
     @CheckReturnValue
-    public static String render(@Nullable final String s) {
+    public static String renderMarkers(@Nullable final String s) {
         if (s == null) return null;
 
-        /*
-        StringBuilder builder = new StringBuilder(s);
-
-        Matcher matcher = HEX_MARK_PATTERN.matcher(builder);
-        while (matcher.find()) {
-            // &#123456
-            // §x§1§2§3§4§5§6
-            String group = matcher.group();
-            StringBuilder r = new StringBuilder(RENDER_CHAR + "x");
-            for (int i=2; i < 8; i++) {
-                r.append(RENDER_CHAR).append(group.charAt(i));
-            }
-            builder.replace(matcher.start(), matcher.end(), r.toString());
-            matcher = HEX_MARK_PATTERN.matcher(builder);
-        }
-
-        matcher = LEGACY_MARK_PATTERN.matcher(builder);
-        while (matcher.find()) {
-            // &c
-            // §c
-            builder.setCharAt(matcher.start(), RENDER_CHAR);
-            matcher = LEGACY_MARK_PATTERN.matcher(builder);
-        }
-
-        return builder.toString();
-         */
-
-        int size = render(s.toCharArray(), BUFFER, 0);
+        int size = renderMarkers(s.toCharArray(), BUFFER, 0);
         return new String(BUFFER, 0, size);
     }
 
     @Nullable
     @CheckReturnValue
-    public static String render_ThreadSafe(@Nullable String s) {
+    public static String renderMarkers_ThreadSafe(@Nullable String s) {
         if (s == null) return null;
         char[] res = new char[(int)(s.length()*1.667f) + 1];
-        int offset = render(s.toCharArray(), res, 0);
+        int offset = renderMarkers(s.toCharArray(), res, 0);
         return new String(res, 0, offset);
     }
 
     @CheckReturnValue
-    public static int render(@Nonnull char[] in, @Nonnull char[] out, int outOffset) {
+    public static int renderMarkers(@Nonnull char[] in, @Nonnull char[] out, int outOffset) {
         int end = outOffset;
 
         final int length = in.length;
@@ -997,7 +1153,7 @@ public enum ColorUtil {
                     // with the use of failsafe assumption
 
 
-                    // Then scan assuming this branch will be taken
+                    // Then scan assuming this branch is successful
                     out[end++] = RENDER_CHAR;
                     out[end++] = 'x';
                     i += 2;
@@ -1032,20 +1188,20 @@ public enum ColorUtil {
 
     @Nullable
     @CheckReturnValue
-    public static String invert(@Nullable String s) {
+    public static String invertRendered(@Nullable String s) {
         if (s == null) return null;
-        int offset = invert(s.toCharArray(), BUFFER, 0);
+        int offset = invertRendered(s.toCharArray(), BUFFER, 0);
         return new String(BUFFER, 0, offset);
     }
 
     @Nullable
     @CheckReturnValue
-    public static List<String> invert(@Nullable List<String> list) {
+    public static List<String> invertRendered(@Nullable List<String> list) {
         if (list == null) return null;
 
         List<String> ret = new ArrayList<>();
         for (String lore : list) {
-            ret.add(invert(lore));
+            ret.add(invertRendered(lore));
         }
 
         return ret;
@@ -1053,15 +1209,15 @@ public enum ColorUtil {
 
     @Nullable
     @CheckReturnValue
-    public static String invert_ThreadSafe(@Nullable String s) {
+    public static String invertRendered_ThreadSafe(@Nullable String s) {
         if (s == null) return null;
         char[] res = new char[(int)(s.length()*1.667f) + 1];
-        int offset = invert(s.toCharArray(), res, 0);
+        int offset = invertRendered(s.toCharArray(), res, 0);
         return new String(res, 0, offset);
     }
 
     @CheckReturnValue
-    public static int invert(@Nonnull char[] in, @Nonnull char[] out, int outOffset) {
+    public static int invertRendered(@Nonnull char[] in, @Nonnull char[] out, int outOffset) {
         final int length = in.length;
 
         for (int i=0; i < length; i++) {
@@ -1104,8 +1260,12 @@ public enum ColorUtil {
 
     @Nullable
     @CheckReturnValue
-    public static String strip(@Nullable String s) {
+    public static String stripRendered(@Nullable String s) {
         return strip(s, false);
+    }
+
+    public static String stripMarkers(@Nullable String s) {
+        return strip(s, true);
     }
 
     @Nullable
@@ -1162,18 +1322,6 @@ public enum ColorUtil {
      *                                             *
      * * * * * * * * * * * * * * * * * * * * * * * */
 
-    /**
-     * Translate gradients embedded as both hex and name markdown of an input string
-     * @param in the input string
-     * @return the hex marked string
-     */
-    @Nonnull
-    @CheckReturnValue
-    @Deprecated
-    public static String applyHexAndNameGradients(@Nonnull final String in) {
-        return ColorUtil.applyNameGradients(ColorUtil.applyHexGradients(in));
-    }
-
     @Nullable
     @CheckReturnValue
     public static String applyGradients(@Nullable final String in) {
@@ -1220,73 +1368,6 @@ public enum ColorUtil {
         return builder.toString();
     }
 
-    @Nonnull
-    @CheckReturnValue
-    @Deprecated
-    public static String applyHexGradients(@Nonnull final String in) {
-
-        StringBuilder builder = new StringBuilder(in.length()*15).append("&7").append(in);
-
-        // begin and end gradient can be extracted sing string indexOf and lastIndexOf < and > chars
-        Matcher matcher = GRADIENT_HEX_PATTERN.matcher(builder);
-        while (matcher.find()) {
-            // REPLACE
-
-            String group = builder.substring(matcher.start(), matcher.end());
-
-            // If version less than 1.16
-            // then instead keep optional embedded legacy codes
-            String text = group.substring(9, group.length() - 10);
-            if (Version.AT_LEAST_v1_16.a()) {
-                text = strip(text, true);
-                Color start = toColor(group.substring(2, 8));
-                Color end = toColor(group.substring(group.length() - 7, group.length() - 1));
-
-                //noinspection ConstantConditions
-                builder.replace(matcher.start(), matcher.end(),
-                        applyEdgeColors(text, start, end) + "&7");
-            } else {
-                builder.replace(matcher.start(), matcher.end(), text + "&7");
-            }
-            matcher = GRADIENT_HEX_PATTERN.matcher(builder);
-        }
-
-        return builder.toString();
-    }
-
-    @Nonnull
-    @CheckReturnValue
-    @Deprecated
-    public static String applyNameGradients(@Nonnull final String in) {
-
-        StringBuilder builder = new StringBuilder(in.length()*15).append("&7").append(in);
-
-        // begin and end gradient can be extracted sing string indexOf and lastIndexOf < and > chars
-        Matcher matcher = GRADIENT_NAME_PATTERN.matcher(builder);
-        while (matcher.find()) {
-            // REPLACE
-            String group = builder.substring(matcher.start(), matcher.end());
-
-            if (Version.AT_LEAST_v1_16.a()) {
-                String text = strip(group.substring(group.indexOf(">") + 1, group.lastIndexOf("<")), true);
-                Color start = COLORS.get(group.substring(1, group.indexOf(">")));
-                Color end = COLORS.get(group.substring(group.lastIndexOf("<") + 2, group.length() - 1));
-
-                if (start != null && end != null) {
-                    builder.replace(matcher.start(), matcher.end(),
-                            applyEdgeColors(text, start, end) + "&7");
-                    matcher = GRADIENT_NAME_PATTERN.matcher(builder);
-                }
-            } else {
-                String text = group.substring(group.indexOf(">") + 1, group.lastIndexOf("<"));
-
-                builder.replace(matcher.start(), matcher.end(), text + "&7");
-            }
-        }
-
-        return builder.toString();
-    }
-
     /**
      * Linearly apply an array of colors comprised of gradients across an input string, resulting in a hex marked string
      * @param in the input string
@@ -1312,7 +1393,7 @@ public enum ColorUtil {
         StringBuilder builder = new StringBuilder();
 
         for (int i = 0; i < in.length(); i++) {
-            builder.append(toHexMark(colors.get(i))).append(in.charAt(i));
+            builder.append(toHexMarker(colors.get(i))).append(in.charAt(i));
         }
 
         return builder.toString();
@@ -1397,7 +1478,7 @@ public enum ColorUtil {
      *                                             *
      * * * * * * * * * * * * * * * * * * * * * * * */
 
-    private static String toHexMark(Color color) {
+    private static String toHexMarker(Color color) {
         return "&#" + String.format("%06x", color.asRGB());
     }
 

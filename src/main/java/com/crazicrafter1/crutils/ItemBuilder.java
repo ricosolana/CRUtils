@@ -5,6 +5,7 @@ import com.google.common.collect.HashBiMap;
 import com.mojang.authlib.GameProfile;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.enchantments.Enchantment;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
  * return refwrences to this everywhere
  * high performancd
  */
+@SuppressWarnings({"UnusedReturnValue", "unused"})
 public class ItemBuilder implements ConfigurationSerializable {
 
     static final Class<?> CLASS_CraftMetaSkull = ReflectionUtil.getCraftBukkitClass("inventory.CraftMetaSkull");
@@ -54,8 +56,8 @@ public class ItemBuilder implements ConfigurationSerializable {
         try {
             ItemBuilder builder = ItemBuilder.fromModernMaterial((String) map.get("type"))
                     .amount((int) map.getOrDefault("amount", 1))
-                    .name((String) map.get("name"))
-                    .lore((List<String>) map.get("lore"));
+                    .name((String) map.get("name"), ColorUtil.RENDER_MARKERS)
+                    .lore((List<String>) map.get("lore"), ColorUtil.RENDER_MARKERS);
 
             String skull64 = (String) map.get("skull");
             if (skull64 != null) builder.skull(skull64);
@@ -100,8 +102,8 @@ public class ItemBuilder implements ConfigurationSerializable {
 
         map.put("type", getModernMaterial());
         if ((int)(temp = getAmount()) > 1) map.put("amount", temp);
-        if ((temp = getName()) != null) map.put("name", ColorUtil.invert((String)temp));
-        if ((temp = getLoreList()) != null) map.put("lore", ((List<String>)temp).stream().map(ColorUtil::invert).collect(Collectors.toList()));
+        if ((temp = getName()) != null) map.put("name", ColorUtil.invertRendered((String)temp));
+        if ((temp = getLoreList()) != null) map.put("lore", ((List<String>)temp).stream().map(ColorUtil::invertRendered).collect(Collectors.toList()));
 
         if ((temp = getSkull()) != null) map.put("skull", temp);
         if ((int)(temp = getModel()) != -1) map.put("model", temp);
@@ -225,6 +227,7 @@ public class ItemBuilder implements ConfigurationSerializable {
      * @return {@link ItemBuilder} copy
      */
     @Nonnull
+    @Deprecated
     public ItemBuilder transcribe(@Nonnull String from, @Nonnull String to) {
         GoogleTranslate G = new GoogleTranslate();
 
@@ -239,30 +242,40 @@ public class ItemBuilder implements ConfigurationSerializable {
         return this;
     }
 
+    public static final int FLAG_NAME = 0b1;
+    public static final int FLAG_LORE = 0b10;
+    public static final int FLAG_SKULL = 0b100;
+    public static final int FLAG_NAME_FORCE = 0b1000;
+    public static final int FLAG_LORE_FORCE = 0b10000;
+    public static final int FLAG_MATERIAL = 0b10000;
+
     /**
-     * Apply name and lore of other to this
-     * @param other {@link ItemMeta} instance
+     * Apply attributes of other to this
+     * @param otherItemStack {@link ItemStack} instance
      * @return {@link ItemBuilder} copy
      */
-    @Nonnull
-    public ItemBuilder combine(@Nonnull ItemMeta other) {
-        if (other.hasDisplayName())
-            this.name(other.getDisplayName());
-        if (other.hasLore())
-            lore(other.getLore(), ColorMode.RENDER_MARKERS);
-
-        return this;
+    public ItemBuilder apply(@Nonnull ItemStack otherItemStack) {
+        return apply(otherItemStack, FLAG_NAME | FLAG_LORE);
     }
 
-    /**
-     * Apply name and lore of other to this
-     * @param other {@link ItemMeta} instance
-     * @return {@link ItemBuilder} copy
-     */
+    //TODO Find a more suitable name for this
     @SuppressWarnings("ConstantConditions")
     @Nonnull
-    public ItemBuilder combine(@Nonnull ItemStack other) {
-        return combine(other.getItemMeta());
+    public ItemBuilder apply(@Nonnull ItemStack otherItemStack, int flags) {
+        ItemMeta other = otherItemStack.getItemMeta();
+        if (((flags & FLAG_NAME) == FLAG_NAME && other.hasDisplayName()) || (flags & FLAG_NAME_FORCE) == FLAG_NAME_FORCE)
+            this.name(other.getDisplayName());
+
+        if (((flags & FLAG_LORE) == FLAG_LORE && other.hasLore()) || (flags & FLAG_LORE_FORCE) == FLAG_LORE_FORCE)
+            lore(other.getLore(), ColorUtil.AS_IS);
+
+        if (((flags & FLAG_SKULL) == FLAG_SKULL) && getMeta() instanceof SkullMeta)
+            skull(ItemBuilder.fromModernMaterial("PLAYER_HEAD").meta(other).getSkull());
+
+        if (((flags & FLAG_MATERIAL) == FLAG_MATERIAL))
+            material(otherItemStack.getType());
+
+        return this;
     }
 
     /**
@@ -270,30 +283,35 @@ public class ItemBuilder implements ConfigurationSerializable {
      * @param builder {@link ItemBuilder} instance
      * @return {@link ItemBuilder} this
      */
+    //TODO Find a more suitable name for this
     @Nonnull
-    public ItemBuilder combine(@Nonnull ItemBuilder builder) {
-        return combine(builder.getMeta());
+    public ItemBuilder apply(@Nonnull ItemBuilder builder) {
+        return apply(builder.itemStack);
     }
+
+
 
     /**
      * Transfer the item name to the lore
      * @return {@link ItemBuilder} this
      */
+    //TODO This function should be restructured and renamed
     @Nonnull
     @Deprecated
     public ItemBuilder name2Lore() {
-        return name2Lore(null, ColorMode.RENDER_MARKERS);
+        return name2Lore(null, ColorUtil.RENDER_MARKERS);
     }
 
     /**
      * Transfer the item name to the lore
-     * @param mode {@link ColorMode} mode
+     * @param mode {@link ColorUtil} mode
      * @return {@link ItemBuilder} this
      */
+    //TODO This function should be restructured and renamed
     @Nonnull
     @Deprecated
-    public ItemBuilder name2Lore(ColorMode mode) {
-        return name2Lore(null, ColorMode.RENDER_MARKERS);
+    public ItemBuilder name2Lore(ColorUtil mode) {
+        return name2Lore(null, ColorUtil.RENDER_MARKERS);
     }
 
     /**
@@ -301,21 +319,23 @@ public class ItemBuilder implements ConfigurationSerializable {
      * @param prepend before text
      * @return {@link ItemBuilder} this
      */
+    //TODO This function should be restructured and renamed
     @Nonnull
     @Deprecated
     public ItemBuilder name2Lore(@Nullable String prepend) {
-        return name2Lore(prepend, ColorMode.RENDER_MARKERS);
+        return name2Lore(prepend, ColorUtil.RENDER_MARKERS);
     }
 
     /**
      * Transfer the item name to the lore, with optional prepend
      * @param prepend before text
-     * @param mode {@link ColorMode} mode
+     * @param mode {@link ColorUtil} mode
      * @return {@link ItemBuilder} this
      */
+    //TODO This function should be restructured and renamed
     @Nonnull
     @Deprecated
-    public ItemBuilder name2Lore(@Nullable String prepend, ColorMode mode) {
+    public ItemBuilder name2Lore(@Nullable String prepend, ColorUtil mode) {
         String name = getName();
 
         if (name != null)
@@ -347,10 +367,9 @@ public class ItemBuilder implements ConfigurationSerializable {
         ItemMeta meta = getMeta();
         if (meta instanceof EnchantmentStorageMeta) {
             ((EnchantmentStorageMeta) meta).addStoredEnchant(enchantment, level, true);
-            return meta(meta);
-        }
-        itemStack.addUnsafeEnchantment(enchantment, level);
-        return this;
+        } else
+            meta.addEnchant(enchantment, level, true);
+        return meta(meta);
     }
 
     /**
@@ -396,18 +415,18 @@ public class ItemBuilder implements ConfigurationSerializable {
      */
     @Nonnull
     public ItemBuilder name(@Nullable String name) {
-        return this.name(name, ColorMode.RENDER_MARKERS);
+        return this.name(name, ColorUtil.RENDER_ALL);
     }
 
     /**
      * Apply a name to this using conditional color codes
      * If name is null, reset name
      * @param name {@link String} instance
-     * @param mode {@link ColorMode} mode
+     * @param mode {@link ColorUtil} mode
      * @return {@link ItemBuilder} copy
      */
     @Nonnull
-    public ItemBuilder name(@Nullable String name, ColorMode mode) {
+    public ItemBuilder name(@Nullable String name, @Nonnull ColorUtil mode) {
         ItemMeta meta = getMeta();
 
         if (name != null)
@@ -421,56 +440,83 @@ public class ItemBuilder implements ConfigurationSerializable {
      * Reset the name of this
      * @return {@link ItemBuilder} copy
      */
+    @SuppressWarnings("ConstantConditions")
     @Nonnull
-    public ItemBuilder resetName() {
-        return name(null);
+    public ItemBuilder removeName() {
+        return name(null, null);
     }
 
+
+
     /**
-     * Apply a color coded lore to this, with lines separated by '\n'
-     * If lore is null, reset lore
+     * Add an item lore
+     * Defaults:
+     *  - Simple color coding
+     *  - Newlines are transposed
+     *  - Lore is removed if null
+     * todo should make null throw or do nothing instead
+     *      because adding and removing a lore should be clearly different
      * @param lore {@link String} instance
      * @return {@link ItemBuilder} copy
      */
     @Nonnull
     public ItemBuilder lore(@Nullable String lore) {
-        return this.lore(lore, ColorMode.RENDER_MARKERS);
+        return this.lore(lore, ColorUtil.RENDER_ALL, null);
     }
 
     @Nonnull
-    public ItemBuilder lore(@Nullable String lore, ColorMode mode) {
-        return lore == null ? lore((List<String>) null, mode)
-                : lore(Arrays.asList(lore.split("\n")), mode);
+    public ItemBuilder lore(@Nullable String lore, @Nonnull ColorUtil mode) {
+        return this.lore(lore, mode, null);
     }
 
     @Nonnull
-    public ItemBuilder lore(@Nullable String... lore) {
-        return lore(ColorMode.RENDER_MARKERS, lore);
+    public ItemBuilder lore(@Nullable String lore, @Nonnull ColorUtil mode, @Nullable String perLineFormat) {
+        return lore(lore == null
+                ? null
+                : Arrays.asList(lore.split("\n")), mode, perLineFormat);
+    }
+
+
+
+    @Nonnull
+    public ItemBuilder lore(@Nullable String[] lore) {
+        return lore(lore, ColorUtil.RENDER_ALL, null);
     }
 
     @Nonnull
-    public ItemBuilder lore(ColorMode mode, @Nullable String... lore) {
-        return lore(lore, mode);
+    public ItemBuilder lore(@Nullable String[] lore, @Nonnull ColorUtil mode) {
+        return lore(lore, mode, null);
     }
 
     @Nonnull
-    public ItemBuilder lore(@Nullable String[] lore, ColorMode mode) {
-        return lore == null ? lore((List<String>) null, mode) : lore(Arrays.asList(lore), mode);
+    public ItemBuilder lore(@Nullable String[] lore, @Nonnull ColorUtil mode, @Nullable String perLineFormat) {
+        return lore(lore == null
+                ? null
+                : Arrays.asList(lore), mode, perLineFormat);
     }
+
+
 
     @Nonnull
     public ItemBuilder lore(@Nullable List<String> lore) {
-        return lore(lore, ColorMode.RENDER_MARKERS);
+        return lore(lore, ColorUtil.RENDER_ALL, null);
     }
 
     @Nonnull
-    public ItemBuilder lore(@Nullable List<String> lore, @Nonnull ColorMode mode) {
+    public ItemBuilder lore(@Nullable List<String> lore, @Nonnull ColorUtil mode) {
+        return lore(lore, mode, null);
+    }
+
+    @Nonnull
+    public ItemBuilder lore(@Nullable List<String> lore, @Nonnull ColorUtil mode, @Nullable String perLineFormat) {
         ItemMeta meta = getMeta();
 
-        if (lore != null)
-            for (int i = 0; i < lore.size(); i++) {
+        if (lore != null) {
+            if (perLineFormat != null) for (int i = 0; i < lore.size(); i++)
+                lore.set(i, String.format(perLineFormat, mode.a(lore.get(i))));
+            else for (int i = 0; i < lore.size(); i++)
                 lore.set(i, mode.a(lore.get(i)));
-            }
+        }
 
         meta.setLore(lore);
 
@@ -478,26 +524,34 @@ public class ItemBuilder implements ConfigurationSerializable {
     }
 
     /**
-     * Reset the lore of this
+     * Remove the item lore
      * @return {@link ItemBuilder} copy
      */
+    @SuppressWarnings("ConstantConditions")
     @Nonnull
-    public ItemBuilder resetLore() {
-        return lore((List<String>) null, ColorMode.RENDER_MARKERS);
+    public ItemBuilder removeLore() {
+        return lore((List<String>) null, null, null);
     }
 
     /**
-     * Apply a macro to the name and lore of this
-     * @param delim the delimiter i.e %
-     * @param match the macro name
-     * @param value the macro value
+     * Apply a text substitution to the name and lore of the item
+     * @param findValue what to replace
+     * @param newValue the replacement text
+     * @param d delimiter %
      * @return {@link ItemBuilder} copy
      */
-    @Deprecated
     @Nonnull
-    public ItemBuilder macro(@Nonnull String delim, @Nonnull String match, @Nonnull String value) {
-        name(Util.macro(getName(), delim, match, value));
-        lore(Util.macro(getLoreString(), delim, match, value));
+    public ItemBuilder replace(@Nonnull String findValue, @Nonnull String newValue, @Nonnull char d) {
+        String name = getName();
+        if (name != null)
+            name(name.replace(d + findValue + d, newValue), ColorUtil.AS_IS);
+
+        List<String> lore = getLoreList();
+        if (lore != null) {
+            for (int i=0; i < lore.size(); i++) // manually replaces all macros
+                lore.set(i, lore.get(i).replace(d + findValue + d, newValue));
+            lore(lore, ColorUtil.AS_IS);
+        }
 
         return this;
     }
@@ -510,15 +564,18 @@ public class ItemBuilder implements ConfigurationSerializable {
     @Nonnull
     public ItemBuilder placeholders(@Nullable Player p) {
         if (p != null && Main.getInstance().supportPlaceholders) {
-            String temp = getName();
-            if (temp != null)
+            String name = getName();
+            if (name != null)
                 name(PlaceholderAPI.setPlaceholders(
-                        p, temp));
+                        p, name));
 
-            temp = getLoreString();
-            if (temp != null)
-                lore(PlaceholderAPI.setPlaceholders(
-                        p, temp));
+            List<String> lore = getLoreList();
+            if (lore != null) {
+                for (int i = 0; i < lore.size(); i++)
+                    lore.set(i, PlaceholderAPI.setPlaceholders(
+                            p, lore.get(i)));
+                return lore(lore);
+            }
         }
         return this;
     }
@@ -589,7 +646,7 @@ public class ItemBuilder implements ConfigurationSerializable {
     /**
      * Make an item look like it's enchanted
      * @param glint whether to glint
-     * @return {@link ImmutableItemBuilder} copy
+     * @return {@link ItemBuilder} copy
      */
     @Nonnull
     public ItemBuilder glow(boolean glint) {
@@ -604,7 +661,7 @@ public class ItemBuilder implements ConfigurationSerializable {
     /**
      * Apply firework effect to this
      * @param effect the effect
-     * @return {@link ImmutableItemBuilder} copy
+     * @return {@link ItemBuilder} copy
      */
     @Nonnull
     public ItemBuilder fireworkEffect(FireworkEffect effect) {
@@ -659,13 +716,15 @@ public class ItemBuilder implements ConfigurationSerializable {
     }
 
     /**
-     * Get the Material of this
+     * Get an approximated locale name (not really locale, just Material properly formatted)
      * @return {@link Material} copy
      */
     @CheckReturnValue
     @Nonnull
     public String getLocaleName() {
-        return Util.punctuateAndGrammar(getMaterial());
+        return WordUtils.capitalizeFully(
+                getModernMaterial().toLowerCase().replace('_', ' '), '.');
+        //return Util.punctuateAndGrammar(getMaterial());
     }
 
     /**
@@ -675,7 +734,7 @@ public class ItemBuilder implements ConfigurationSerializable {
     @CheckReturnValue
     @Nonnull
     public String getNameOrLocaleName() {
-        return Util.strDef(getName(), getLocaleName());
+        return Util.def(getName(), getLocaleName());
     }
 
     /**
@@ -917,8 +976,8 @@ public class ItemBuilder implements ConfigurationSerializable {
     @Nonnull
     public ItemBuilder renderAll(boolean renderAll) {
         if (renderAll) {
-            name(getName(), ColorMode.RENDER_ALL);
-            return lore(getLoreList(), ColorMode.RENDER_ALL);
+            name(getName(), ColorUtil.RENDER_ALL);
+            return lore(getLoreList(), ColorUtil.RENDER_ALL);
         }
         return this;
     }

@@ -9,6 +9,7 @@ public class MutableString implements Appendable, CharSequence {
     private char[] value;
     private int count;
     private int offset;
+    //private int testOffset;
 
     public MutableString() {
         this(new char[15], 0, 0);
@@ -29,6 +30,7 @@ public class MutableString implements Appendable, CharSequence {
         this.value = buf;
         this.count = count;
         this.offset = offset;
+        //this.testOffset = offset;
     }
 
     @Nonnull
@@ -155,7 +157,10 @@ public class MutableString implements Appendable, CharSequence {
     @Nonnull
     @Override
     public MutableString append(CharSequence seq, int beginIndex, int endIndex) {
-        if (beginIndex >= endIndex)
+        if (beginIndex == endIndex)
+            return this;
+
+        if (beginIndex > endIndex)
             throw new IllegalArgumentException("Start cannot overlap or exceed end");
 
         if (beginIndex < 0)
@@ -223,6 +228,16 @@ public class MutableString implements Appendable, CharSequence {
             return false;
         return value[offset] == ch;
     }
+
+    //public boolean is(char ch) {
+    //    return value[testOffset] == ch;
+    //}
+    //
+    //public boolean nextIs(char ch) {
+    //    if (value)
+    //    return testOffset
+    //}
+
 
 
 
