@@ -48,6 +48,10 @@ public enum Util {
         }.runTask(Main.getInstance());
     }
 
+    public static String replace(String find, String replaceWith, char d) {
+        return find.replace(d + find + d, replaceWith);
+    }
+
     public static String strDef(@Nullable String value, @Nonnull String defaultValue) {
         return value == null || value.isEmpty()
                 ? defaultValue : value;

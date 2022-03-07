@@ -1121,7 +1121,7 @@ public enum ColorUtil {
     @CheckReturnValue
     public static String renderMarkers_ThreadSafe(@Nullable String s) {
         if (s == null) return null;
-        char[] res = new char[(int)(s.length()*1.667f) + 1];
+        char[] res = new char[(int)(s.length()*1.7f)]; // &7h -> §7h          &#RRGGBBh -> §x§R§R§G§G§B§Bh
         int offset = renderMarkers(s.toCharArray(), res, 0);
         return new String(res, 0, offset);
     }

@@ -242,12 +242,12 @@ public class ItemBuilder implements ConfigurationSerializable {
         return this;
     }
 
-    public static final int FLAG_NAME = 0b1;
-    public static final int FLAG_LORE = 0b10;
-    public static final int FLAG_SKULL = 0b100;
-    public static final int FLAG_NAME_FORCE = 0b1000;
-    public static final int FLAG_LORE_FORCE = 0b10000;
-    public static final int FLAG_MATERIAL = 0b10000;
+    public static final int FLAG_NAME           = 0b1;
+    public static final int FLAG_NAME_FORCE     = 0b10;
+    public static final int FLAG_LORE           = 0b100;
+    public static final int FLAG_LORE_FORCE     = 0b1000;
+    public static final int FLAG_SKULL          = 0b10000;
+    public static final int FLAG_MATERIAL       = 0b100000;
 
     /**
      * Apply attributes of other to this
@@ -264,16 +264,16 @@ public class ItemBuilder implements ConfigurationSerializable {
     public ItemBuilder apply(@Nonnull ItemStack otherItemStack, int flags) {
         ItemMeta other = otherItemStack.getItemMeta();
         if (((flags & FLAG_NAME) == FLAG_NAME && other.hasDisplayName()) || (flags & FLAG_NAME_FORCE) == FLAG_NAME_FORCE)
-            this.name(other.getDisplayName());
+            this.name(other.getDisplayName(), ColorUtil.AS_IS);
 
         if (((flags & FLAG_LORE) == FLAG_LORE && other.hasLore()) || (flags & FLAG_LORE_FORCE) == FLAG_LORE_FORCE)
             lore(other.getLore(), ColorUtil.AS_IS);
 
-        if (((flags & FLAG_SKULL) == FLAG_SKULL) && getMeta() instanceof SkullMeta)
-            skull(ItemBuilder.fromModernMaterial("PLAYER_HEAD").meta(other).getSkull());
-
         if (((flags & FLAG_MATERIAL) == FLAG_MATERIAL))
             material(otherItemStack.getType());
+
+        if (((flags & FLAG_SKULL) == FLAG_SKULL) && getMeta() instanceof SkullMeta)
+            skull(ItemBuilder.fromModernMaterial("PLAYER_HEAD").meta(other).getSkull());
 
         return this;
     }
@@ -418,19 +418,22 @@ public class ItemBuilder implements ConfigurationSerializable {
         return this.name(name, ColorUtil.RENDER_ALL);
     }
 
-    /**
-     * Apply a name to this using conditional color codes
-     * If name is null, reset name
-     * @param name {@link String} instance
-     * @param mode {@link ColorUtil} mode
-     * @return {@link ItemBuilder} copy
-     */
     @Nonnull
     public ItemBuilder name(@Nullable String name, @Nonnull ColorUtil mode) {
+        return name(name, mode, null);
+    }
+
+    @Nonnull
+    public ItemBuilder name(@Nullable String name, @Nonnull ColorUtil mode, @Nullable String prependIfNonNull) {
+        if (name == null) return this;
+
         ItemMeta meta = getMeta();
 
         if (name != null)
             name = mode.a(name);
+
+        if (prependIfNonNull != null)
+            name = prependIfNonNull + name;
 
         meta.setDisplayName(name);
         return meta(meta);
@@ -443,7 +446,10 @@ public class ItemBuilder implements ConfigurationSerializable {
     @SuppressWarnings("ConstantConditions")
     @Nonnull
     public ItemBuilder removeName() {
-        return name(null, null);
+        ItemMeta meta = getMeta();
+        meta.setDisplayName(null);
+        return meta(meta);
+        //return name(null, null);
     }
 
 
@@ -509,6 +515,8 @@ public class ItemBuilder implements ConfigurationSerializable {
 
     @Nonnull
     public ItemBuilder lore(@Nullable List<String> lore, @Nonnull ColorUtil mode, @Nullable String perLineFormat) {
+        if (lore == null) return this;
+
         ItemMeta meta = getMeta();
 
         if (lore != null) {
@@ -530,7 +538,12 @@ public class ItemBuilder implements ConfigurationSerializable {
     @SuppressWarnings("ConstantConditions")
     @Nonnull
     public ItemBuilder removeLore() {
-        return lore((List<String>) null, null, null);
+        ItemMeta meta = getMeta();
+
+        meta.setLore(null);
+
+        return meta(meta);
+        //return lore((List<String>) null, null, null);
     }
 
     /**
