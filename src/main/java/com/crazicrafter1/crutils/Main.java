@@ -1,5 +1,6 @@
 package com.crazicrafter1.crutils;
 
+import com.crazicrafter1.crutils.refl.Mirror;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -40,6 +41,8 @@ public class Main extends JavaPlugin {
         }
 
         Main.instance = this;
+
+        Mirror.init();
 
         supportPlaceholders = getServer().getPluginManager().isPluginEnabled("PlaceholderAPI");
 

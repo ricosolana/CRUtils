@@ -15,16 +15,6 @@ public class Mirror {
 
     public static Method METHOD_asNMSCopy;
     public static Method METHOD_asCraftMirror;
-    public static Method METHOD_getTag;
-    public static Method METHOD_setTag;
-
-    public static Method METHOD_set;
-    public static Method METHOD_setInt;
-    public static Method METHOD_setDouble;
-    public static Method METHOD_setString;
-
-    public static Method METHOD_getString;
-    //static Method METHOD_add;
 
     static {
         try {
@@ -34,103 +24,22 @@ public class Mirror {
             CLASS_ItemStack = METHOD_asNMSCopy.getReturnType();
             METHOD_asCraftMirror = ReflectionUtil.getMethod(CLASS_CraftItemStack, "asCraftMirror", CLASS_ItemStack);
 
-
-            try {
-                METHOD_getTag = ReflectionUtil.getMethod(CLASS_ItemStack, "getTag");
-            } catch (Exception e) {
-                // 1.18.1
-                // NBTTagCompound s()
-                METHOD_getTag = ReflectionUtil.getMethod(CLASS_ItemStack, "s");
-            }
-            CLASS_NBTTagCompound = METHOD_getTag.getReturnType();
-
-
-            try {
-                METHOD_setTag = ReflectionUtil.getMethod(CLASS_ItemStack, "setTag", CLASS_NBTTagCompound);
-            } catch (Exception e) {
-                // 1.18.1
-                // void c(@Nullable NBTTagCompound nbttagcompound)
-                METHOD_setTag = ReflectionUtil.getMethod(CLASS_ItemStack, "c", CLASS_NBTTagCompound);
-            }
+            CLASS_NBTTagCompound = ItemStackMirror.FIELD_nbtTag.getType();
 
             try {
                 CLASS_NBTBase = CLASS_NBTTagCompound.getInterfaces()[0];
             } catch (Exception e) {
-                // 1.12.2
-                // derives from a class not interface
+                // 1.12.2 derives from a class instead of an interface
                 CLASS_NBTBase = CLASS_NBTTagCompound.getSuperclass();
             }
 
-            // 1.8.1
-            // NBTTagList c(String var0, int var1)
-            try {
-                CLASS_NBTTagList = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "getList", String.class, int.class).getReturnType();
-            } catch (Exception e) {
-                CLASS_NBTTagList = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "c", String.class, int.class).getReturnType();
-            }
+            CLASS_NBTTagList = ReflectionUtil.findMethod(CLASS_NBTTagCompound, "NBTTagList", String.class, int.class).getReturnType();
 
-            // 1.18.1
-            // NBTBase a(String var0, NBTBase var1)
-            try {
-                METHOD_set = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "set", String.class, CLASS_NBTBase);
-                METHOD_setInt = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setInt", String.class, int.class);
-                METHOD_setDouble = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setDouble", String.class, double.class);
-                METHOD_setString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setString", String.class, String.class);
-
-                METHOD_getString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "getString", String.class);
-
-            } catch (Exception e) {
-                METHOD_set = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "a", String.class, CLASS_NBTBase);
-                METHOD_setInt = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "a", String.class, int.class);
-                METHOD_setDouble = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "a", String.class, double.class);
-                METHOD_setString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "a", String.class, String.class);
-
-                METHOD_getString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "l", String.class);
-
-            }
-
-
-            //METHOD_add = ReflectionUtil.getMethod(CLASS_NBTTagList, "add", CLASS_NBTBase);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-
-
-
-
-
-
-/*
-    static final Class<?> CLASS_CraftItemStack = ReflectionUtil.getCraftClass("inventory.CraftItemStack");
-
-    static final Method METHOD_asNMSCopy = ReflectionUtil.getMethod(CLASS_CraftItemStack, "asNMSCopy", ItemStack.class);
-    static final Class<?> CLASS_ItemStack = METHOD_asNMSCopy.getReturnType();
-    static final Method METHOD_asCraftMirror = ReflectionUtil.getMethod(CLASS_CraftItemStack, "asCraftMirror", CLASS_ItemStack);
-
-
-    // NMS ItemStack has an instance method to get tag
-    // get it
-    static final Method METHOD_getTag = ReflectionUtil.getMethod(CLASS_ItemStack, "getTag");
-    static final Class<?> CLASS_NBTTagCompound = METHOD_getTag.getReturnType();
-    static final Method METHOD_setTag = ReflectionUtil.getMethod(CLASS_ItemStack, "setTag", CLASS_NBTTagCompound);
-
-
-    //static final Class<?> CLASS_NBTBase = ReflectionUtil.getMethod(CLASS_NBTTagCompound,"get").getReturnType();
-    static final Class<?> CLASS_NBTBase = CLASS_NBTTagCompound.getInterfaces()[0];
-    static final Class<?> CLASS_NBTTagList = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "getList", String.class, int.class).getReturnType();
-
-    static final Method METHOD_set = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "set", String.class, CLASS_NBTBase);
-    static final Method METHOD_setInt = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setInt", String.class, int.class);
-    static final Method METHOD_setDouble = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setDouble", String.class, int.class);
-    static final Method METHOD_setString = ReflectionUtil.getMethod(CLASS_NBTTagCompound, "setString", String.class, int.class);
-
-    static final Method METHOD_add = ReflectionUtil.getMethod(CLASS_NBTTagList, "add", int.class, CLASS_NBTBase);
-
-
- */
-
-
+    public static void init() {}
 
 }

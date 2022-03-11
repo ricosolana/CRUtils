@@ -5,7 +5,9 @@ import org.bukkit.Bukkit;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 public enum ReflectionUtil {
     ;
@@ -18,7 +20,8 @@ public enum ReflectionUtil {
     // org\bukkit\craftbukkit\v1_8_R3\
     // equals: v1_8_R3
     final static String VERSION = CRAFT_BUKKIT.substring(CRAFT_BUKKIT.lastIndexOf(".")+1);
-    final static int VERSION_MINOR = Integer.parseInt(VERSION.substring(1, VERSION.indexOf("_R")).split("_")[1]);
+    final static int VERSION_MAJOR = Integer.parseInt(VERSION.substring(1, VERSION.indexOf("_R")).split("_")[1]);
+    //final static int VERSION_MINOR = Integer.parseInt(VERSION.substring(1, VERSION.indexOf("_R")).split("_")[2]);
 
     static {
         // CrashReport remains consistent in root package across versions
@@ -157,14 +160,59 @@ public enum ReflectionUtil {
     /**
      * Locate a field in the clazz, which is of type clazzType
      * @param clazz
-     * @param clazzType
+     * @param type
      * @return
      */
-    public static Field findFieldByType(Class<?> clazz, String clazzType) {
+    public static Field findField(Class<?> clazz, String type) {
         for (Field field : clazz.getDeclaredFields()) {
-            if (field.getType().getSimpleName().equals(clazzType)) return field;
+            if (field.getType().getSimpleName().equals(type)) return field;
         }
-        throw new NoSuchFieldError("No field with type " + clazzType + " in class: " + clazz.getName());
+        throw new NoSuchFieldError("No field with type " + type + " in class: " + clazz.getName());
     }
+
+    public static Field findField(Class<?> clazz, Class<?> type) {
+        for (Field field : clazz.getDeclaredFields()) {
+            if (field.getType().equals(type)) return field;
+        }
+        throw new NoSuchFieldError("No field with type " + type + " in class: " + clazz.getName());
+    }
+
+    public static Method findMethod(Class<?> clazz, Class<?> returnType, Class<?>... params) {
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.getReturnType().equals(returnType)
+                    && Arrays.equals(params, method.getParameterTypes()))
+                return method;
+        }
+        throw new NoSuchMethodError("No method with params " + Arrays.toString(params) + " and return type " + returnType + " in class: " + clazz.getName());
+    }
+
+    public static Method findMethod(Class<?> clazz, String returnType, Class<?>... params) {
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.getReturnType().getSimpleName().equals(returnType)
+                    && Arrays.equals(params, method.getParameterTypes()))
+                return method;
+        }
+        throw new NoSuchMethodError("No method with params " + Arrays.toString(params) + " and return type " + returnType + " in class: " + clazz.getName());
+    }
+
+    public static Method findMethod(Class<?> clazz, Class<?> returnType, String... params) {
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.getReturnType().equals(returnType)
+                    && Arrays.equals(params, Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).toArray()))
+                return method;
+        }
+        throw new NoSuchMethodError("No method with params " + Arrays.toString(params) + " and return type " + returnType + " in class: " + clazz.getName());
+    }
+
+    public static Method findMethod(Class<?> clazz, String returnType, String... params) {
+        for (Method method : clazz.getDeclaredMethods()) {
+            if (method.getReturnType().getSimpleName().equals(returnType)
+                    && Arrays.equals(params, Arrays.stream(method.getParameterTypes()).map(Class::getSimpleName).toArray()))
+                return method;
+        }
+        throw new NoSuchMethodError("No method with params " + Arrays.toString(params) + " and return type " + returnType + " in class: " + clazz.getName());
+    }
+
+    // flaggers
 
 }

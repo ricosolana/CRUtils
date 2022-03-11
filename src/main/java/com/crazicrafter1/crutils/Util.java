@@ -3,10 +3,8 @@ package com.crazicrafter1.crutils;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import me.clip.placeholderapi.PlaceholderAPI;
-import org.bukkit.Material;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import javax.annotation.Nonnull;
@@ -189,7 +187,7 @@ public enum Util {
             CLASS_CraftPlayer = ReflectionUtil.getCraftBukkitClass("entity.CraftPlayer");
             METHOD_getHandle = ReflectionUtil.getMethod(CLASS_CraftPlayer, "getHandle");
             CLASS_EntityPlayer = METHOD_getHandle.getReturnType();
-            FIELD_playerConnection = ReflectionUtil.findFieldByType(CLASS_EntityPlayer, "PlayerConnection");
+            FIELD_playerConnection = ReflectionUtil.findField(CLASS_EntityPlayer, "PlayerConnection");
             // get the PlayerConnection
             CLASS_PlayerConnection = FIELD_playerConnection.getType();
             //CLASS_Packet = ReflectionUtil.getNMClass("");

@@ -3,7 +3,11 @@ package com.crazicrafter1.crutils.refl;
 import com.crazicrafter1.crutils.ReflectionUtil;
 import org.bukkit.inventory.ItemStack;
 
+import java.lang.reflect.Field;
+
 public class ItemStackMirror {
+
+    public static Field FIELD_nbtTag = ReflectionUtil.findField(Mirror.CLASS_ItemStack, "NBTTagCompound");
 
     private Object instance;
 
@@ -21,27 +25,22 @@ public class ItemStackMirror {
      */
     public NBTTagCompoundMirror getOrCreateTag() {
         NBTTagCompoundMirror nbt = getTag();
-        //Object nbt = ReflectionUtil.invokeMethod(Mirror.METHOD_getTag, instance);
         if (nbt == null)
             setTag(new NBTTagCompoundMirror());
 
-        return getTag(); //new NBTTagCompoundMirror(nbt.instance);
+        return getTag();
     }
 
     public NBTTagCompoundMirror getTag() {
-        Object nbt = ReflectionUtil.invokeMethod(Mirror.METHOD_getTag, instance);
-        if (nbt == null)
+        //Object nbt = ReflectionUtil.invokeMethod(Mirror.METHOD_getTag, instance);
+        Object nbtTagCompound = ReflectionUtil.getFieldInstance(FIELD_nbtTag, instance);
+        if (nbtTagCompound == null)
             return null;
-        return new NBTTagCompoundMirror(nbt);
+        return new NBTTagCompoundMirror(nbtTagCompound);
     }
 
     public void setTag(NBTTagCompoundMirror mirror) {
-        ReflectionUtil.invokeMethod(Mirror.METHOD_setTag, instance, mirror.instance);
+        ReflectionUtil.setFieldInstance(FIELD_nbtTag, instance, mirror.instance);
+        //ReflectionUtil.invokeMethod(Mirror.METHOD_setTag, instance, mirror.instance);
     }
-
-    //static net.minecraft.world.item.ItemStack i;
-    //static {
-    //    //i.getOrCreateTag()
-    //}
-
 }

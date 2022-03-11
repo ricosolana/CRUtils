@@ -39,6 +39,8 @@ public enum Version {
     v1_16,
     v1_17,
     v1_18,
+    //v1_18_R1,
+    //v1_18_R2,
     ;
 
     private final boolean active;
@@ -50,7 +52,13 @@ public enum Version {
         } else if (name().startsWith("AT_MOST")) {
             active = cmp <= 0;
         } else {
-            active = cmp == 0;
+            String[] split = name().substring(name().indexOf('v')+1).split("_");
+            if (split.length != 3) {
+                active = cmp == 0;
+            } else {
+                // exact 3 version parsing
+                active = ReflectionUtil.VERSION.equals(name());
+            }
         }
     }
 
@@ -63,8 +71,10 @@ public enum Version {
      * @return signed difference
      */
     private int cmp() {
-        int minor = Integer.parseInt(name().substring(name().lastIndexOf('_')+1));
-        return ReflectionUtil.VERSION_MINOR - minor;
+        String[] split = name().substring(name().indexOf('v')+1).split("_");
+        int major = Integer.parseInt(split[1]);
+        //int minor = Integer.parseInt(split[2]);
+        return ReflectionUtil.VERSION_MAJOR - major;
     }
 
     public boolean a() {
