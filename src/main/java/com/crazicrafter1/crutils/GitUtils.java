@@ -37,9 +37,9 @@ public class GitUtils {
 
                 try {
                     String tag = getTag(author, project);
-                    acceptAsync(callback, tag);
+                    accept(callback, tag);
                 } catch (Exception e) {
-                    acceptAsync(callback, null);
+                    accept(callback, null);
                 }
 
 
@@ -113,7 +113,7 @@ public class GitUtils {
                     installLatest(author, project, filename, replace, outTag);
                 } catch (IOException ignored) {}
 
-                acceptAsync(callback, outTag.toString());
+                accept(callback, outTag.toString());
             }
         }.runTaskAsynchronously(Main.getInstance());
     }
@@ -158,9 +158,9 @@ public class GitUtils {
                 StringBuilder outTag = new StringBuilder();
                 try {
                     boolean result = updatePlugin(plugin, author, project, filename, outTag);
-                    acceptAsync(callback, result, outTag.toString());
+                    accept(callback, result, outTag.toString());
                 } catch (IOException e) {
-                    acceptAsync(callback, false, outTag.toString());
+                    accept(callback, false, outTag.toString());
                 }
 
 
@@ -189,9 +189,9 @@ public class GitUtils {
                     StringBuilder outTag = new StringBuilder();
                     boolean result = checkForUpdate(plugin, author, project, outTag);
 
-                    acceptAsync(callback, result, outTag.toString());
+                    accept(callback, result, outTag.toString());
                 } catch (Exception e) {
-                    acceptAsync(callback, false, null);
+                    accept(callback, false, null);
                 }
             }
         }.runTaskAsynchronously(Main.getInstance());
@@ -199,7 +199,7 @@ public class GitUtils {
 
 
 
-    private static void acceptAsync(@Nonnull BiConsumer<Boolean, String> callback, boolean b, @Nullable String s) {
+    private static void accept(@Nonnull BiConsumer<Boolean, String> callback, boolean b, @Nullable String s) {
         new BukkitRunnable() {
             @Override
             public void run() {
@@ -210,7 +210,7 @@ public class GitUtils {
         }.runTask(Main.getInstance());
     }
 
-    private static void acceptAsync(@Nonnull Consumer<String> callback, @Nullable String s) {
+    private static void accept(@Nonnull Consumer<String> callback, @Nullable String s) {
         new BukkitRunnable() {
             @Override
             public void run() {

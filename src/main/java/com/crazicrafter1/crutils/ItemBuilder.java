@@ -133,7 +133,7 @@ public class ItemBuilder implements ConfigurationSerializable {
         return map;
     }
 
-    private final ItemStack itemStack;
+    private ItemStack itemStack;
 
     private ItemBuilder(ItemStack itemStack) {
         Validate.isTrue(itemStack.getType() != Material.AIR && itemStack.getItemMeta() != null);
@@ -840,6 +840,8 @@ public class ItemBuilder implements ConfigurationSerializable {
     public int getMaxSize() {
         return itemStack.getMaxStackSize();
     }
+
+
 
     private static final Map<Integer, List<String>> AT_MOST_v1_12_TO_MODERN_MAP = new HashMap<>();
     private static void addAll_v1_12(Object... values) {

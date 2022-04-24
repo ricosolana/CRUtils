@@ -1,8 +1,7 @@
 package com.crazicrafter1.crutils;
 
-import com.crazicrafter1.crutils.refl.Mirror;
-import org.bukkit.Bukkit;
-import org.bukkit.ChatColor;
+import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -19,15 +18,16 @@ public class Main extends JavaPlugin {
 
     @Override
     public void onEnable() {
-        getDataFolder().mkdirs();
-        File noUpdateFile = new File(getDataFolder(), "NO_UPDATE.txt");
-        if (!(noUpdateFile.exists() && noUpdateFile.isFile())) try {
+        Main.instance = this;
+
+        saveDefaultConfig();
+        FileConfiguration config = getConfig();
+        boolean update = config.getBoolean("update", false);
+
+        if (update) try {
                 StringBuilder outTag = new StringBuilder();
                 if (GitUtils.updatePlugin(this, "PeriodicSeizures", "CRUtils", "CRUtils.jar", outTag)) {
-                    getLogger().warning("Updated to " + outTag + "; restart server to use");
-
-                    Bukkit.getPluginManager().disablePlugin(this);
-                    return;
+                    getLogger().warning("Updated to " + outTag);
                 } else {
                     getLogger().info("Using the latest version");
                 }
@@ -36,13 +36,9 @@ public class Main extends JavaPlugin {
                 e.printStackTrace();
             }
         else {
-            getLogger().warning("Updating is disabled (delete " + noUpdateFile.getName() + " to enable)");
-            GitUtils.checkForUpdateAsync(this, "PeriodicSeizures", "CRUtils", (result, tag) -> getLogger().warning("Update " + tag + " is available"));
+            getLogger().warning("Updating is disabled");
+            GitUtils.checkForUpdateAsync(this, "PeriodicSeizures", "CRUtils", (result, tag) -> { if (result) getLogger().warning("Update " + tag + " is available"); else getLogger().info("Using latest version"); });
         }
-
-        Main.instance = this;
-
-        Mirror.init();
 
         supportPlaceholders = getServer().getPluginManager().isPluginEnabled("PlaceholderAPI");
 

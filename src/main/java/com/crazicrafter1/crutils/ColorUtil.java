@@ -34,7 +34,6 @@ public enum ColorUtil {
         return formatFunction.apply(s);
     }
 
-
     private static final char MARK_CHAR = '&';
     private static final char RENDER_CHAR = ChatColor.COLOR_CHAR;
 
@@ -1100,7 +1099,6 @@ public enum ColorUtil {
      * @param s input string
      * @return the formatted string
      */
-    @Nullable
     @CheckReturnValue
     public static String renderAll(@Nullable String s) {
         if (s == null) return null;
@@ -1108,7 +1106,6 @@ public enum ColorUtil {
         return renderMarkers(s);
     }
 
-    @Nullable
     @CheckReturnValue
     public static String renderMarkers(@Nullable final String s) {
         if (s == null) return null;
@@ -1117,7 +1114,6 @@ public enum ColorUtil {
         return new String(BUFFER, 0, size);
     }
 
-    @Nullable
     @CheckReturnValue
     public static String renderMarkers_ThreadSafe(@Nullable String s) {
         if (s == null) return null;
@@ -1186,7 +1182,6 @@ public enum ColorUtil {
      *                                             *
      * * * * * * * * * * * * * * * * * * * * * * * */
 
-    @Nullable
     @CheckReturnValue
     public static String invertRendered(@Nullable String s) {
         if (s == null) return null;
@@ -1194,7 +1189,6 @@ public enum ColorUtil {
         return new String(BUFFER, 0, offset);
     }
 
-    @Nullable
     @CheckReturnValue
     public static List<String> invertRendered(@Nullable List<String> list) {
         if (list == null) return null;
@@ -1207,7 +1201,6 @@ public enum ColorUtil {
         return ret;
     }
 
-    @Nullable
     @CheckReturnValue
     public static String invertRendered_ThreadSafe(@Nullable String s) {
         if (s == null) return null;
@@ -1258,7 +1251,6 @@ public enum ColorUtil {
      *                                             *
      * * * * * * * * * * * * * * * * * * * * * * * */
 
-    @Nullable
     @CheckReturnValue
     public static String stripRendered(@Nullable String s) {
         return strip(s, false);
@@ -1268,7 +1260,6 @@ public enum ColorUtil {
         return strip(s, true);
     }
 
-    @Nullable
     @CheckReturnValue
     public static String strip(@Nullable String s, boolean removeMarkersOnly) {
         if (s == null) return null;
@@ -1276,7 +1267,6 @@ public enum ColorUtil {
         return new String(BUFFER, 0, offset);
     }
 
-    @Nullable
     @CheckReturnValue
     public static String strip_ThreadSafe(@Nullable String s, boolean removeMarkersOnly) {
         if (s == null) return null;
@@ -1322,7 +1312,6 @@ public enum ColorUtil {
      *                                             *
      * * * * * * * * * * * * * * * * * * * * * * * */
 
-    @Nullable
     @CheckReturnValue
     public static String applyGradients(@Nullable final String in) {
         if (in == null)
@@ -1478,19 +1467,27 @@ public enum ColorUtil {
      *                                             *
      * * * * * * * * * * * * * * * * * * * * * * * */
 
-    private static String toHexMarker(Color color) {
+    public static String toHexMarker(Color color) {
         return "&#" + String.format("%06x", color.asRGB());
     }
 
-    private static Color toColor(int r, int g, int b) {
+    public static Color toColor(int r, int g, int b) {
         return Color.fromRGB(clamp(r, 0, 255), clamp(g, 0, 255), clamp(b, 0, 255));
     }
 
-    private static Color toColor(String hex) {
+    public static Color toColor(int rgb) {
+        return Color.fromRGB(rgb);
+    }
+
+    public static Color toColor(String hex) {
         return Color.fromRGB(Integer.parseInt(hex, 16));
     }
 
-    private static String toHex(Color color) {
+    public static String toHex(Color color) {
         return Integer.toHexString(color.asRGB());
+    }
+
+    public static String toHex(java.awt.Color jColor) {
+        return toHex(toColor(jColor.getRed(), jColor.getGreen(), jColor.getBlue()));
     }
 }
