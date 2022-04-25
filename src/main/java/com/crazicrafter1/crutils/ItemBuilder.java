@@ -269,8 +269,12 @@ public class ItemBuilder implements ConfigurationSerializable {
         if (((flags & FLAG_LORE) == FLAG_LORE && other.hasLore()) || (flags & FLAG_LORE_FORCE) == FLAG_LORE_FORCE)
             lore(other.getLore(), ColorUtil.AS_IS);
 
-        if (((flags & FLAG_MATERIAL) == FLAG_MATERIAL))
+        // determine material
+        if (((flags & FLAG_MATERIAL) == FLAG_MATERIAL)) {
             material(otherItemStack.getType());
+            if (Version.AT_MOST_v1_13.a()) // TODO this seems very unsafe, but is uncommon
+                itemStack.setDurability(otherItemStack.getDurability());
+        }
 
         if (((flags & FLAG_SKULL) == FLAG_SKULL) && getMeta() instanceof SkullMeta)
             skull(ItemBuilder.fromModernMaterial("PLAYER_HEAD").meta(other).getSkull());
@@ -404,6 +408,14 @@ public class ItemBuilder implements ConfigurationSerializable {
     @Nonnull
     public ItemBuilder material(Material material) {
         itemStack.setType(material);
+        return this;
+    }
+
+    public ItemBuilder modernMaterial(String s) {
+        ItemBuilder modern = fromModernMaterial(s);
+        material(modern.getMaterial());
+        if (Version.AT_MOST_v1_13.a())
+            itemStack.setDurability(modern.itemStack.getDurability());
         return this;
     }
 
