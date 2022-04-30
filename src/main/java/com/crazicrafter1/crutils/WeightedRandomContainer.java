@@ -6,7 +6,7 @@ import java.util.*;
 
 public class WeightedRandomContainer<K> {
 
-    private HashMap<K, Integer> weights;
+    private final HashMap<K, Integer> weights;
     private int weight;
 
     public WeightedRandomContainer() {
@@ -14,7 +14,10 @@ public class WeightedRandomContainer<K> {
     }
 
     public WeightedRandomContainer(Map<K, Integer> weights) {
-        this.weights = new HashMap<>(weights);
+        this.weights = new HashMap<>();
+        for (Map.Entry<K, Integer> entry : weights.entrySet()) {
+            add(entry.getKey(), entry.getValue());
+        }
     }
 
     public static <K> WeightedRandomContainer<K> cumulative(LinkedHashMap<K, Integer> cumulative) {
@@ -65,6 +68,8 @@ public class WeightedRandomContainer<K> {
      * @param weight the weight
      */
     public void add(K key, int weight) {
+        //if (weights.containsKey(key)) throw new RuntimeException("Cannot add new")
+        remove(key);
         weights.put(key, weight);
         this.weight += weight;
     }
@@ -72,15 +77,15 @@ public class WeightedRandomContainer<K> {
     /**
      * Remove a weighted item
      * @param key the key
-     * @throws NullPointerException If the key does not exist
      */
     public void remove(K key) {
-        int w = Objects.requireNonNull(weights.remove(key));
-        this.weight -= w;
+        Integer w = weights.remove(key);
+        if (w != null)
+            this.weight -= w;
     }
 
     public Map<K, Integer> getMap() {
-        return weights;
+        return Collections.unmodifiableMap(weights);
     }
 
     @Override

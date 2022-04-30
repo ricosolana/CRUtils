@@ -42,7 +42,7 @@ public enum ReflectionUtil {
     }
 
     // get class by package dir
-    public static Class getCanonicalClass(final String canonicalName) {
+    public static Class<?> getCanonicalClass(final String canonicalName) {
         try {
             return Class.forName(canonicalName);
         } catch (ClassNotFoundException e) {
