@@ -13,15 +13,12 @@ public enum ReflectionUtil {
     ;
 
     private final static String CRAFT_BUKKIT = Bukkit.getServer().getClass().getPackage().getName();
-    private final static String NET_MINECRAFT;
-            //ReflectionUtil.getMethod(
-            //ReflectionUtil.getCraftBukkitClass("inventory.CraftItemStack"), "asNMSCopy", ItemStack.class).getReturnType().getPackage().getName();
+    //private final static String NET_MINECRAFT;
 
     // org\bukkit\craftbukkit\v1_8_R3\
     // equals: v1_8_R3
     final static String VERSION = CRAFT_BUKKIT.substring(CRAFT_BUKKIT.lastIndexOf(".")+1);
     final static int VERSION_MAJOR = Integer.parseInt(VERSION.substring(1, VERSION.indexOf("_R")).split("_")[1]);
-    //final static int VERSION_MINOR = Integer.parseInt(VERSION.substring(1, VERSION.indexOf("_R")).split("_")[2]);
 
     static {
         // CrashReport remains consistent in root package across versions
@@ -29,16 +26,14 @@ public enum ReflectionUtil {
         // net\minecraft\server\v1_8_R3\CrashReport
         // net\minecraft\server\v1_14_R1\CrashReport
         // net\minecraft\CrashReport
-        Class<?> crashReport;
-        try {
-            crashReport = ReflectionUtil.getCanonicalClass(
-                    "net.minecraft.server." + VERSION + ".CrashReport");
-
-        } catch (Exception e) {
-            crashReport = ReflectionUtil.getCanonicalClass("net.minecraft.CrashReport");
-        }
-
-        NET_MINECRAFT = crashReport.getPackage().getName();
+        //Class<?> crashReport;
+        //try {
+        //    crashReport = ReflectionUtil.getCanonicalClass(
+        //            "net.minecraft.server." + VERSION + ".CrashReport");
+        //} catch (Exception e) {
+        //    crashReport = ReflectionUtil.getCanonicalClass("net.minecraft.CrashReport");
+        //}
+        //NET_MINECRAFT = crashReport.getPackage().getName();
     }
 
     // get class by package dir
@@ -54,9 +49,11 @@ public enum ReflectionUtil {
         return getCanonicalClass(CRAFT_BUKKIT + "." + name);
     }
 
-    public static Class<?> getNMClass(String name) {
-        return getCanonicalClass(NET_MINECRAFT + "." + name);
-    }
+    // Try not to use reflections with nms too much
+    // it's very hard to read reflect plus it's slower ,-,
+    //public static Class<?> getNMClass(String name) {
+    //    return getCanonicalClass(NET_MINECRAFT + "." + name);
+    //}
 
     public static Method getMethod(Class<?> clazz, String method, Class<?>... params) {
         try {
