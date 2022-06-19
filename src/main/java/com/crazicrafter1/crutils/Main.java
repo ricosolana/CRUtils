@@ -1,5 +1,6 @@
 package com.crazicrafter1.crutils;
 
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
@@ -39,6 +40,9 @@ public class Main extends JavaPlugin {
             getLogger().warning("Updating is disabled");
             GitUtils.checkForUpdateAsync(this, "PeriodicSeizures", "CRUtils", (result, tag) -> { if (result) getLogger().warning("Update " + tag + " is available"); else getLogger().info("Using latest version"); });
         }
+
+        //getLogger().info("getVersion(): " + Bukkit.getVersion());
+        //getLogger().info("getBukkitVersion(): " + Bukkit.getBukkitVersion());
 
         supportPlaceholders = getServer().getPluginManager().isPluginEnabled("PlaceholderAPI");
 
