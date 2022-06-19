@@ -833,8 +833,12 @@ public class ItemBuilder implements ConfigurationSerializable {
     @CheckReturnValue
     public int getModel() {
         ItemMeta meta = getMeta();
-        if (meta.hasCustomModelData())
+        //hasCustomModelData does not exist in 1.12.2
+        //if (meta.hasCustomModelData())
+        //    return meta.getCustomModelData();
+        try {
             return meta.getCustomModelData();
+        } catch (Exception ignored) {}
         return -1;
     }
 
@@ -844,7 +848,7 @@ public class ItemBuilder implements ConfigurationSerializable {
         try {
             PotionMeta meta = (PotionMeta) getMeta();
             return meta.getCustomEffects();
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
         return null;
     }
 
