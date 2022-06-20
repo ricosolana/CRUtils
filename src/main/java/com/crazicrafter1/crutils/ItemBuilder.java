@@ -54,7 +54,7 @@ public class ItemBuilder implements ConfigurationSerializable {
     @Nonnull
     public static ItemBuilder deserialize(Map<String, Object> map) {
         try {
-            ItemBuilder builder = ItemBuilder.fromModernMaterial((String) map.get("type"))
+            ItemBuilder builder = ItemBuilder.from((String) map.get("type"))
                     .amount((int) map.getOrDefault("amount", 1))
                     .name((String) map.get("name"), ColorUtil.RENDER_MARKERS)
                     .lore((List<String>) map.get("lore"), ColorUtil.RENDER_MARKERS);
@@ -140,62 +140,96 @@ public class ItemBuilder implements ConfigurationSerializable {
         this.itemStack = itemStack;
     }
 
-    public static ItemBuilder copyOf(Material material) {
+    public static ItemBuilder of(Material material) {
         return new ItemBuilder(new ItemStack(material));
     }
 
-    public static ItemBuilder mutable(ItemStack itemStack) {
-        return new ItemBuilder(itemStack);
-    }
-
-    public static ItemBuilder copyOf(ItemStack itemStack) {
+    public static ItemBuilder of(ItemStack itemStack) {
         return new ItemBuilder(new ItemStack(itemStack));
     }
 
-    public static ItemBuilder mutable(ItemBuilder builder) {
-        return mutable(builder.build());
+    public static ItemBuilder of(ItemBuilder builder) {
+        return of(builder.build());
     }
 
-    public static ItemBuilder copyOf(ItemBuilder builder) {
-        return copyOf(builder.build());
+    public static ItemBuilder mut(ItemStack itemStack) {
+        return new ItemBuilder(itemStack);
     }
+
+    public static ItemBuilder mut(ItemBuilder builder) {
+        return mut(builder.build());
+    }
+
+
+    // TODO remove later on
+    @Deprecated
+    public static ItemBuilder copyOf(Material material) {
+        return of(new ItemStack(material));
+    }
+
+    @Deprecated
+    public static ItemBuilder copyOf(ItemStack itemStack) {
+        return of(itemStack);
+    }
+
+    @Deprecated
+    public static ItemBuilder copyOf(ItemBuilder builder) {
+        return of(builder.build());
+    }
+
+    @Deprecated
+    public static ItemBuilder mutable(ItemStack itemStack) {
+        return mut(itemStack);
+    }
+
+    @Deprecated
+    public static ItemBuilder mutable(ItemBuilder builder) {
+        return mut(builder.build());
+    }
+
+
 
     /**
      * Version safe item getter
-     * @param MODERN_NAME Name of the item in 1.18
+     * @param modern Name of the item in 1.18
      * @throws IllegalArgumentException if an item cannot be matched
      */
     @SuppressWarnings("deprecation")
     @Nonnull
-    public static ItemBuilder fromModernMaterial(String MODERN_NAME) {
-        MODERN_NAME = MODERN_NAME.toUpperCase();
+    public static ItemBuilder from(String modern) {
+        modern = modern.toUpperCase();
 
-        Material material = Material.matchMaterial(MODERN_NAME);
+        Material material = Material.matchMaterial(modern);
 
         if (material == null) {
             if (Version.AT_MOST_v1_12.a()) {
-                if (MODERN_NAME.equals("INK_SAC"))          // TODO misnomer
-                    return copyOf(Material.matchMaterial("INK_SACK"));
+                if (modern.equals("INK_SAC"))          // TODO misnomer
+                    return of(Material.matchMaterial("INK_SACK"));
 
                 for (Map.Entry<Integer, List<String>> entry : AT_MOST_v1_12_TO_MODERN_MAP.entrySet()) {
-                    int index = entry.getValue().indexOf(MODERN_NAME);
+                    int index = entry.getValue().indexOf(modern);
                     if (index != -1) {
                         material = Material.matchMaterial("" + entry.getKey());
 
-                        if (material != null) return copyOf(new ItemStack(material, 1, (short) index));
+                        if (material != null) return of(new ItemStack(material, 1, (short) index));
                     }
                 }
             } else if (Version.v1_13.a()) {
-                String LEGACY_NAME = v1_13_TO_MODERN_MAP.inverse().get(MODERN_NAME);
+                String LEGACY_NAME = v1_13_TO_MODERN_MAP.inverse().get(modern);
 
                 if (LEGACY_NAME != null) material = Material.matchMaterial(LEGACY_NAME);
             }
         }
 
         if (material != null)
-            return copyOf(material);
+            return of(material);
 
-        throw new IllegalArgumentException("Material " + MODERN_NAME + " does not exist ");
+        throw new IllegalArgumentException("Material " + modern + " does not exist ");
+    }
+
+    @Deprecated
+    public static ItemBuilder fromModernMaterial(String MODERN_NAME) {
+        return from(MODERN_NAME);
     }
 
     /**
@@ -205,7 +239,7 @@ public class ItemBuilder implements ConfigurationSerializable {
     @CheckReturnValue
     @Nonnull
     public ItemBuilder copy() {
-        return copyOf(this);
+        return of(this);
     }
 
     /**
@@ -277,7 +311,7 @@ public class ItemBuilder implements ConfigurationSerializable {
         }
 
         if (((flags & FLAG_SKULL) == FLAG_SKULL) && getMeta() instanceof SkullMeta)
-            skull(ItemBuilder.fromModernMaterial("PLAYER_HEAD").meta(other).getSkull());
+            skull(ItemBuilder.from("PLAYER_HEAD").meta(other).getSkull());
 
         return this;
     }
@@ -390,14 +424,18 @@ public class ItemBuilder implements ConfigurationSerializable {
 
     /**
      * Set the CustomModelData of this
+     * Fails silently on versions before 1.14.4
      * @param i data
      * @return {@link ItemBuilder} copy
      */
     @Nonnull
     public ItemBuilder model(@Nullable Integer i) {
-        ItemMeta meta = getMeta();
-        meta.setCustomModelData(i);
-        return meta(meta);
+        if (Version.AT_LEAST_v1_14.a()) {
+            ItemMeta meta = getMeta();
+            meta.setCustomModelData(i);
+            return meta(meta);
+        }
+        return this;
     }
 
     /**
@@ -411,12 +449,18 @@ public class ItemBuilder implements ConfigurationSerializable {
         return this;
     }
 
-    public ItemBuilder modernMaterial(String s) {
-        ItemBuilder modern = fromModernMaterial(s);
-        material(modern.getMaterial());
+    public ItemBuilder material(String modern) {
+        ItemBuilder itemBuilder = from(modern);
+        material(itemBuilder.getMaterial());
         if (Version.AT_MOST_v1_13.a())
-            itemStack.setDurability(modern.itemStack.getDurability());
+            itemStack.setDurability(itemBuilder.itemStack.getDurability());
         return this;
+    }
+
+    // TODO remove after a few releases
+    @Deprecated
+    public ItemBuilder modernMaterial(String s) {
+        return material(s);
     }
 
     /**
@@ -441,8 +485,7 @@ public class ItemBuilder implements ConfigurationSerializable {
 
         ItemMeta meta = getMeta();
 
-        if (name != null)
-            name = mode.a(name);
+        name = mode.a(name);
 
         if (prependIfNonNull != null)
             name = prependIfNonNull + name;
@@ -531,12 +574,10 @@ public class ItemBuilder implements ConfigurationSerializable {
 
         ItemMeta meta = getMeta();
 
-        if (lore != null) {
-            if (perLineFormat != null) for (int i = 0; i < lore.size(); i++)
-                lore.set(i, String.format(perLineFormat, mode.a(lore.get(i))));
-            else for (int i = 0; i < lore.size(); i++)
-                lore.set(i, mode.a(lore.get(i)));
-        }
+        if (perLineFormat != null) for (int i = 0; i < lore.size(); i++)
+            lore.set(i, String.format(perLineFormat, mode.a(lore.get(i))));
+        else for (int i = 0; i < lore.size(); i++)
+            lore.set(i, mode.a(lore.get(i)));
 
         meta.setLore(lore);
 
@@ -547,15 +588,11 @@ public class ItemBuilder implements ConfigurationSerializable {
      * Remove the item lore
      * @return {@link ItemBuilder} copy
      */
-    @SuppressWarnings("ConstantConditions")
     @Nonnull
     public ItemBuilder removeLore() {
         ItemMeta meta = getMeta();
-
         meta.setLore(null);
-
         return meta(meta);
-        //return lore((List<String>) null, null, null);
     }
 
     /**
@@ -566,7 +603,7 @@ public class ItemBuilder implements ConfigurationSerializable {
      * @return {@link ItemBuilder} copy
      */
     @Nonnull
-    public ItemBuilder replace(@Nonnull String findValue, @Nonnull String newValue, @Nonnull char d) {
+    public ItemBuilder replace(@Nonnull String findValue, @Nonnull String newValue, char d) {
         String name = getName();
         if (name != null)
             name(name.replace(d + findValue + d, newValue), ColorUtil.AS_IS);
@@ -730,7 +767,6 @@ public class ItemBuilder implements ConfigurationSerializable {
      * Get the name of this
      * @return {@link String} copy
      */
-    @SuppressWarnings("ConstantConditions")
     @CheckReturnValue
     @Nullable
     public String getName() {
@@ -826,19 +862,16 @@ public class ItemBuilder implements ConfigurationSerializable {
             GameProfile profile = (GameProfile) ReflectionUtil.getFieldInstance(FIELD_profile, meta);
 
             return profile.getProperties().get("textures").stream().findFirst().get().getValue();
-        } catch (Exception e) {}
+        } catch (Exception ignored) {}
         return null;
     }
 
     @CheckReturnValue
     public int getModel() {
         ItemMeta meta = getMeta();
-        //hasCustomModelData does not exist in 1.12.2
-        //if (meta.hasCustomModelData())
-        //    return meta.getCustomModelData();
-        try {
+        //customModelData does not exist in 1.12.2
+        if (Version.AT_LEAST_v1_14.a() && meta.hasCustomModelData())
             return meta.getCustomModelData();
-        } catch (Exception ignored) {}
         return -1;
     }
 
@@ -927,6 +960,7 @@ public class ItemBuilder implements ConfigurationSerializable {
                 //NBT 373, "POTIONS...",
                 //NBT 383, "SPAWN_EGGS...",
                 384, "EXPERIENCE_BOTTLE",
+                386, "WRITABLE_BOOK",
                 397, "SKELETON_SKULL", "WITHER_SKELETON_SKULL", "ZOMBIE_HEAD", "PLAYER_HEAD", "CREEPER_HEAD", "DRAGON_HEAD",
                 //NBT 403, "ENCHANTED_BOOKS..."
                 401, "FIREWORK_ROCKET",
