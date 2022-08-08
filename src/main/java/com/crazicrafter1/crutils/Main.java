@@ -1,12 +1,9 @@
 package com.crazicrafter1.crutils;
 
-import org.bukkit.Bukkit;
+import com.crazicrafter1.crutils.ui.AbstractMenu;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.configuration.serialization.ConfigurationSerialization;
 import org.bukkit.plugin.java.JavaPlugin;
-
-import java.io.File;
 
 public class Main extends JavaPlugin {
 
@@ -49,5 +46,12 @@ public class Main extends JavaPlugin {
         ConfigurationSerialization.registerClass(ItemBuilder.class, "ItemBuilder");
 
         new EventListener(this);
+        new com.crazicrafter1.crutils.ui.EventListener(this);
     }
+
+    @Override
+    public void onDisable() {
+        AbstractMenu.closeAllMenus();
+    }
+
 }

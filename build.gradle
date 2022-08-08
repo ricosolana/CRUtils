@@ -1,4 +1,5 @@
 plugins {
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
     id 'java'
 }
 
@@ -24,10 +25,22 @@ repositories {
         name = 'minecraft-repo'
         url = 'https://libraries.minecraft.net/'
     }
+    // anvilgui
+    maven {
+        name = 'codemc'
+        url = 'https://repo.codemc.io/repository/maven-snapshots/'
+    }
+    maven { url "https://jitpack.io" }
+}
+
+configurations {
+    provided
+    compile.extendsFrom provided
 }
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:${project.spigot_version}"
+    shadow 'net.wesjd:anvilgui:1.5.3-SNAPSHOT'
     implementation "com.mojang:authlib:1.5.21"
     compileOnly 'me.clip:PlaceholderAPI:2.11.1'
 }
@@ -53,7 +66,23 @@ tasks.withType(Jar) {
     //destinationDirectory = file('C:\\Users\\Rico\\Downloads\\mohist_server_test\\plugins\\')
 }
 
+shadowJar {
+    configurations = [project.configurations.shadow]
+    archiveFileName = project.plugin_name + ".jar"
+    exclude('META-INF/')
+    exclude('META-INF/**')
+    exclude('**/AnvilGUI$1.class')
+    exclude('**/AnvilGUI$Builder.class')
+    exclude('**/AnvilGUI$ListenUp.class')
+    exclude('**/AnvilGUI$Response.class')
+    exclude('**/AnvilGUI$Slot.class')
+    exclude('**/AnvilGUI.class')
+
+    exclude('META-INF/MANIFEST.MF')
+}
+
 jar {
+    onlyIf { !sourceSets.main.allSource.files.isEmpty() }
     archiveFileName = project.plugin_name + ".jar"
 }
 
