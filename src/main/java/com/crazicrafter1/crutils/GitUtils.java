@@ -15,7 +15,8 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 @SuppressWarnings({"unused", "ResultOfMethodCallIgnored"})
-public class GitUtils {
+public enum GitUtils {
+    ;
 
     public static String getTag(String author, String project) throws IOException {
         URL api = new URL("https://api.github.com/repos/" + author + "/" + project + "/releases/latest");
