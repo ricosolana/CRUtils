@@ -54,28 +54,11 @@ public enum ColorUtil {
             "(.*?)" +
             "</(" + HEX_COLOR_PATTERN + "|[0-9a-zA-Z_]+)>");
 
-    public static Map<String, Color> COLORS;//new HashMap<>();
-
-    // could poll on discord whether people even use this feature, or not so i can remove
-    // it so save space and reduce complexity
-    public static void load() {
-        YamlConfiguration config = new YamlConfiguration();
-        try {
-            Map<String, Color> map = new HashMap<>();
-            config.load(new InputStreamReader(Main.getInstance().getResource("colors.yml")));
-            for (String color : config.getKeys(false)) {
-                String val = config.getString(color);
-
-                map.put(color, Color.fromRGB(Integer.decode(val)));
-            }
-            COLORS = ImmutableMap.copyOf(map);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
     private static final char[] BUFFER = new char[2048 * 10];
 
+    // todo currently experimental and unused
+    //  not really necessary if attention is given to
+    //  initial colors to prevent redundant duplicates
     private static class ColoredChar {
         private String color;
 
@@ -332,6 +315,15 @@ public enum ColorUtil {
      *                                             *
      *                invert string                *
      *                                             *
+     * Non threadsafe methods are intended to have
+     * moderate performance gains over the
+     * threadsafe implementation
+     * This is because an internal array is reused
+     * for the non-threadsafe ones, unlike the
+     * threadsafe implementation where a new array
+     * is allocated each time
+     * Also performance is ok because no regex
+     * parsing or replacement is used
      * * * * * * * * * * * * * * * * * * * * * * * */
 
     @CheckReturnValue
@@ -356,7 +348,7 @@ public enum ColorUtil {
     @CheckReturnValue
     public static String invertRendered_ThreadSafe(@Nullable String s) {
         if (s == null) return null;
-        char[] res = new char[(int)(s.length()*1.667f) + 1];
+        char[] res = new char[(int)(s.length()*1.667f) + 1]; // expands array by an aprx
         int offset = invertRendered(s.toCharArray(), res, 0);
         return new String(res, 0, offset);
     }
@@ -483,18 +475,14 @@ public enum ColorUtil {
             // If version less than 1.16
             // then instead keep optional embedded legacy codes
             if (Version.AT_LEAST_v1_16.a()) {
-                final Color start;
+                Color start = null;
                 if (group.charAt(1) == '#')
                     start = toColor(group.substring(2, 8));
-                else
-                    start = COLORS.get(group.substring(1, ar1));
 
-                final Color end;
+                Color end = null;
                 int lastHash = group.indexOf("#", ar2);
                 if (lastHash != -1)
                     end = toColor(group.substring(lastHash + 1, lastHash + 7));
-                else
-                    end = COLORS.get(group.substring(ar2 + 2, group.length() - 1));
 
                 if (start != null && end != null) {
                     builder.replace(matcher.start(), matcher.end(),
