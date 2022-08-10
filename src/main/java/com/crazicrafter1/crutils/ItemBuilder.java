@@ -140,16 +140,16 @@ public class ItemBuilder implements ConfigurationSerializable {
         this.itemStack = itemStack;
     }
 
-    public static ItemBuilder of(Material material) {
+    public static ItemBuilder copy(Material material) {
         return new ItemBuilder(new ItemStack(material));
     }
 
-    public static ItemBuilder of(ItemStack itemStack) {
+    public static ItemBuilder copy(ItemStack itemStack) {
         return new ItemBuilder(new ItemStack(itemStack));
     }
 
-    public static ItemBuilder of(ItemBuilder builder) {
-        return of(builder.build());
+    public static ItemBuilder copy(ItemBuilder builder) {
+        return copy(builder.build());
     }
 
     public static ItemBuilder mut(ItemStack itemStack) {
@@ -164,17 +164,17 @@ public class ItemBuilder implements ConfigurationSerializable {
     // TODO remove later on
     @Deprecated
     public static ItemBuilder copyOf(Material material) {
-        return of(new ItemStack(material));
+        return copy(new ItemStack(material));
     }
 
     @Deprecated
     public static ItemBuilder copyOf(ItemStack itemStack) {
-        return of(itemStack);
+        return copy(itemStack);
     }
 
     @Deprecated
     public static ItemBuilder copyOf(ItemBuilder builder) {
-        return of(builder.build());
+        return copy(builder.build());
     }
 
     @Deprecated
@@ -204,14 +204,14 @@ public class ItemBuilder implements ConfigurationSerializable {
         if (material == null) {
             if (Version.AT_MOST_v1_12.a()) {
                 if (modern.equals("INK_SAC"))          // TODO misnomer
-                    return of(Material.matchMaterial("INK_SACK"));
+                    return copy(Material.matchMaterial("INK_SACK"));
 
                 for (Map.Entry<Integer, List<String>> entry : AT_MOST_v1_12_TO_MODERN_MAP.entrySet()) {
                     int index = entry.getValue().indexOf(modern);
                     if (index != -1) {
                         material = Material.matchMaterial("" + entry.getKey());
 
-                        if (material != null) return of(new ItemStack(material, 1, (short) index));
+                        if (material != null) return copy(new ItemStack(material, 1, (short) index));
                     }
                 }
             } else if (Version.v1_13.a()) {
@@ -222,7 +222,7 @@ public class ItemBuilder implements ConfigurationSerializable {
         }
 
         if (material != null)
-            return of(material);
+            return copy(material);
 
         throw new IllegalArgumentException("Material " + modern + " does not exist ");
     }
@@ -239,7 +239,7 @@ public class ItemBuilder implements ConfigurationSerializable {
     @CheckReturnValue
     @Nonnull
     public ItemBuilder copy() {
-        return of(this);
+        return copy(this);
     }
 
     /**
