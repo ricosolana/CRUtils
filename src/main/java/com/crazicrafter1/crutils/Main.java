@@ -21,7 +21,6 @@ public class Main extends JavaPlugin {
         saveDefaultConfig();
         FileConfiguration config = getConfig();
         boolean update = config.getBoolean("update", false);
-        ColorUtil.load();
 
         if (update) try {
                 StringBuilder outTag = new StringBuilder();
