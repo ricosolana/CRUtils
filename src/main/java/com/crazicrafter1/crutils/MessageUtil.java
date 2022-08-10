@@ -4,8 +4,17 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.plugin.java.JavaPlugin;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.UUID;
 
 public class MessageUtil {
     //CONSOLE,    // send message to console
@@ -16,14 +25,41 @@ public class MessageUtil {
     //ALL
     //;
 
-    private final String prefix;
+    public static final String SYM_INFO = "\u24D8";
+    public static final String SYM_WARN = "\u26A1";
+    public static final String SYM_SEVERE = "\u26A0";
 
-    public MessageUtil(String prefix) {
-        this.prefix = prefix;
+    private final String format;
+    private final String perm;
+
+    //private static class NotifyListener implements Listener {
+    //    public ArrayList<String> messages = new ArrayList<>();
+    //    public HashSet<UUID> notified = new HashSet<>();
+    //
+    //    public NotifyListener(JavaPlugin plugin) {
+    //        Bukkit.getPluginManager().registerEvents(this, plugin);
+    //    }
+    //    @EventHandler
+    //    private void onJoin(PlayerJoinEvent event) {
+    //        Player p = event.getPlayer();
+    //        if (!notified.contains(p.getUniqueId())) {
+    //            notified.add(p.getUniqueId());
+    //            p.sendMessage();
+    //        }
+    //    }
+    //}
+
+    public MessageUtil(String format, String perm) {
+        this.format = format;
+        this.perm = perm;
     }
 
-    private String format(ChatColor color, String message, ChatColor messageColor) {
-        return ChatColor.WHITE + "[" + color + prefix + ChatColor.WHITE + "]" + ChatColor.RESET + messageColor + message;
+    private void send(CommandSender sender, String message, String prefixColor, String messageColor) {
+        sender.sendMessage(String.format(format, prefixColor, messageColor, message));
+    }
+
+    private void sendCommand(CommandSender sender, String message, String symbol) {
+        sender.sendMessage("" + ChatColor.BOLD + ChatColor.DARK_GRAY + symbol + " " + ChatColor.RESET + ChatColor.GRAY + message);
     }
 
     public void info(String s) {
@@ -38,39 +74,48 @@ public class MessageUtil {
         severe(Bukkit.getConsoleSender(), s);
     }
 
-    public void info(@Nonnull CommandSender sender, String s) {
-        sender.sendMessage(format(ChatColor.BLUE, s, ChatColor.RESET));
+    public void info(@Nonnull CommandSender sender, String message) {
+        send(sender, message, ChatColor.BLUE.toString(), ChatColor.RESET.toString());
     }
 
-    public void warn(@Nonnull CommandSender sender, String s) {
-        sender.sendMessage(format(ChatColor.YELLOW, s, ChatColor.YELLOW));
+    public void warn(@Nonnull CommandSender sender, String message) {
+        send(sender, message, ChatColor.YELLOW.toString(), ChatColor.YELLOW.toString());
     }
 
-    public void severe(@Nonnull CommandSender sender, String s) {
-        sender.sendMessage(format(ChatColor.RED, s, ChatColor.RED));
+    public void severe(@Nonnull CommandSender sender, String message) {
+        send(sender, message, ChatColor.RED.toString(), ChatColor.RED.toString());
     }
 
-    public boolean commandInfo(@Nonnull CommandSender sender, @Nonnull String s) {
-        sender.sendMessage(
-                (sender instanceof ConsoleCommandSender ?
-                        ChatColor.WHITE + "[" + ChatColor.BLUE + prefix + ChatColor.WHITE + "]" : "" + ChatColor.DARK_GRAY + ChatColor.BOLD + "\u24D8") + " "
-                        + ChatColor.RESET + s);
+    public boolean commandInfo(@Nonnull CommandSender sender, @Nonnull String message) {
+        if (sender instanceof ConsoleCommandSender)
+            info(sender, message);
+        else
+            sendCommand(sender, message, SYM_INFO);
         return true;
     }
 
-    public boolean commandWarn(@Nonnull CommandSender sender, String s) {
-        sender.sendMessage(
-                (sender instanceof ConsoleCommandSender ?
-                        ChatColor.WHITE + "[" + ChatColor.YELLOW + prefix + ChatColor.WHITE + "]" : "" + ChatColor.GOLD + ChatColor.BOLD + "\u26A1") + " "
-                        + ChatColor.RESET + ChatColor.YELLOW + s);
+    public boolean commandWarn(@Nonnull CommandSender sender, String message) {
+        if (sender instanceof ConsoleCommandSender)
+            warn(sender, message);
+        else
+            sendCommand(sender, message, SYM_WARN);
         return true;
     }
 
-    public boolean commandSevere(@Nonnull CommandSender sender, String s) {
-        sender.sendMessage(
-                (sender instanceof ConsoleCommandSender ?
-                        ChatColor.WHITE + "[" + ChatColor.RED + prefix + ChatColor.WHITE + "]" : "" + ChatColor.DARK_RED + ChatColor.BOLD + "\u26A0") + " "
-                        + ChatColor.RESET + ChatColor.RED + s);
+    public boolean commandSevere(@Nonnull CommandSender sender, String message) {
+        if (sender instanceof ConsoleCommandSender)
+            severe(sender, message);
+        else
+            sendCommand(sender, message, SYM_SEVERE);
         return true;
     }
+
+    //public void severeGlobal(@Nonnull CommandSender sender, String message) {
+    //    if (joinListener == null) {
+    //        joinListener = new Listener() {
+
+    //        }
+    //    }
+    //}
+
 }
