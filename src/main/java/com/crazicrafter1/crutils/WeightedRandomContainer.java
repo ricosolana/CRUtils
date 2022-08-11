@@ -1,6 +1,5 @@
 package com.crazicrafter1.crutils;
 
-import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
 
@@ -40,7 +39,7 @@ public class WeightedRandomContainer<K> {
      * @return the random object
      */
     public K getRandom() {
-        int rand = ProbabilityUtil.randomRange(0, weight - 1);
+        int rand = RandomUtil.randomRange(0, weight - 1);
 
         for (Map.Entry<K, Integer> entry : weights.entrySet()) {
             int w = entry.getValue();

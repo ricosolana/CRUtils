@@ -1,8 +1,10 @@
 package com.crazicrafter1.crutils;
 
+import javax.annotation.Nullable;
+import java.util.Collection;
 import java.util.Random;
 
-public enum ProbabilityUtil {
+public enum RandomUtil {
     ;
 
     public static double randomRange(double min, double max) {
@@ -36,5 +38,12 @@ public enum ProbabilityUtil {
 
     public static boolean chance(float i, Random random) {
         return i <= (float) (random.nextInt(100) + 1) / 100f;
+    }
+
+    public static @Nullable
+    <T> T getRandom(Collection<T> collection) {
+        return collection.stream()
+                .skip((int) (collection.size() * Math.random()))
+                .findFirst().orElse(null);
     }
 }

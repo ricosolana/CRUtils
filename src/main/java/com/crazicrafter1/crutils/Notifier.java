@@ -9,6 +9,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.plugin.messaging.StandardMessenger;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.UUID;
 
-public class MessageUtil {
+public class Notifier {
     //CONSOLE,    // send message to console
     //GLOBAL,  // broadcast to all online players once
     //OFFLINE,    // broadcast to players who join
@@ -25,9 +26,9 @@ public class MessageUtil {
     //ALL
     //;
 
-    public static final String SYM_INFO = "\u24D8";
-    public static final String SYM_WARN = "\u26A1";
-    public static final String SYM_SEVERE = "\u26A0";
+    private static final String SYM_INFO = "\u24D8";
+    private static final String SYM_WARN = "\u26A1";
+    private static final String SYM_SEVERE = "\u26A0";
 
     private final String format;
     private final String perm;
@@ -49,42 +50,48 @@ public class MessageUtil {
     //    }
     //}
 
-    public MessageUtil(String format, String perm) {
+    public Notifier(@Nonnull String format, @Nonnull String perm) {
         this.format = format;
         this.perm = perm;
     }
 
-    private void send(CommandSender sender, String message, String prefixColor, String messageColor) {
+    private void send(@Nonnull CommandSender sender, @Nonnull String message, @Nonnull String prefixColor, @Nonnull String messageColor) {
         sender.sendMessage(String.format(format, prefixColor, messageColor, message));
     }
 
-    private void sendCommand(CommandSender sender, String message, String symbol) {
+    private void sendCommand(@Nonnull CommandSender sender, @Nonnull String message, @Nonnull String symbol) {
         sender.sendMessage("" + ChatColor.BOLD + ChatColor.DARK_GRAY + symbol + " " + ChatColor.RESET + ChatColor.GRAY + message);
     }
 
-    public void info(String s) {
-        info(Bukkit.getConsoleSender(), s);
+
+
+    public void info(@Nonnull String message) {
+        info(Bukkit.getConsoleSender(), message);
     }
 
-    public void warn(String s) {
-        warn(Bukkit.getConsoleSender(), s);
+    public void warn(@Nonnull String message) {
+        warn(Bukkit.getConsoleSender(), message);
     }
 
-    public void severe(String s) {
-        severe(Bukkit.getConsoleSender(), s);
+    public void severe(@Nonnull String message) {
+        severe(Bukkit.getConsoleSender(), message);
     }
 
-    public void info(@Nonnull CommandSender sender, String message) {
+
+
+    public void info(@Nonnull CommandSender sender, @Nonnull String message) {
         send(sender, message, ChatColor.BLUE.toString(), ChatColor.RESET.toString());
     }
 
-    public void warn(@Nonnull CommandSender sender, String message) {
+    public void warn(@Nonnull CommandSender sender, @Nonnull String message) {
         send(sender, message, ChatColor.YELLOW.toString(), ChatColor.YELLOW.toString());
     }
 
-    public void severe(@Nonnull CommandSender sender, String message) {
+    public void severe(@Nonnull CommandSender sender, @Nonnull String message) {
         send(sender, message, ChatColor.RED.toString(), ChatColor.RED.toString());
     }
+
+
 
     public boolean commandInfo(@Nonnull CommandSender sender, @Nonnull String message) {
         if (sender instanceof ConsoleCommandSender)
@@ -94,7 +101,7 @@ public class MessageUtil {
         return true;
     }
 
-    public boolean commandWarn(@Nonnull CommandSender sender, String message) {
+    public boolean commandWarn(@Nonnull CommandSender sender, @Nonnull String message) {
         if (sender instanceof ConsoleCommandSender)
             warn(sender, message);
         else
@@ -102,13 +109,24 @@ public class MessageUtil {
         return true;
     }
 
-    public boolean commandSevere(@Nonnull CommandSender sender, String message) {
+    public boolean commandSevere(@Nonnull CommandSender sender, @Nonnull String message) {
         if (sender instanceof ConsoleCommandSender)
             severe(sender, message);
         else
             sendCommand(sender, message, SYM_SEVERE);
         return true;
     }
+
+
+
+    public void globalWarn(@Nonnull String message) {
+        warn(message);
+        Bukkit.getOnlinePlayers().forEach(p -> { if (p.hasPermission(perm)) warn(p, message); });
+    }
+
+
+
+
 
     //public void severeGlobal(@Nonnull CommandSender sender, String message) {
     //    if (joinListener == null) {
