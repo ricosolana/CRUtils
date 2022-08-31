@@ -126,7 +126,7 @@ public abstract class AbstractMenu {
                                 event.getCursor() : null,
                         event.getCurrentItem(),
                         event.isShiftClick(),
-                        event.getClick() == ClickType.NUMBER_KEY ? event.getSlot() : -1,
+                        event.getClick() == ClickType.NUMBER_KEY ? event.getHotbarButton() : -1,
                         builder);
 
         if (event.isLeftClick() && button.leftClickFunction != null)

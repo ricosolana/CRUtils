@@ -12,10 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.StandardMessenger;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.UUID;
+import java.util.*;
 
 public class Notifier {
     //CONSOLE,    // send message to console
@@ -56,6 +53,7 @@ public class Notifier {
     }
 
     private void send(@Nonnull CommandSender sender, @Nonnull String message, @Nonnull String prefixColor, @Nonnull String messageColor) {
+        //sender.sendMessage(Arrays.stream(message.split("\n")).foString.format(format, prefixColor, messageColor, message));
         sender.sendMessage(String.format(format, prefixColor, messageColor, message));
     }
 
@@ -80,7 +78,7 @@ public class Notifier {
 
 
     public void info(@Nonnull CommandSender sender, @Nonnull String message) {
-        send(sender, message, ChatColor.BLUE.toString(), ChatColor.RESET.toString());
+        send(sender, message, ChatColor.BLUE.toString(), ChatColor.GRAY.toString());
     }
 
     public void warn(@Nonnull CommandSender sender, @Nonnull String message) {
