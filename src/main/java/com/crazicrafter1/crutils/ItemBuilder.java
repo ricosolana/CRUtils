@@ -599,19 +599,19 @@ public class ItemBuilder implements ConfigurationSerializable {
      * Apply a text substitution to the name and lore of the item
      * @param findValue what to replace
      * @param newValue the replacement text
-     * @param d delimiter %
+     * @param delim delimiter %
      * @return {@link ItemBuilder} copy
      */
     @Nonnull
-    public ItemBuilder replace(@Nonnull String findValue, @Nonnull String newValue, char d) {
+    public ItemBuilder replace(@Nonnull String findValue, @Nonnull String newValue, char delim) {
         String name = getName();
         if (name != null)
-            name(name.replace(d + findValue + d, newValue), ColorUtil.AS_IS);
+            name(name.replace(delim + findValue + delim, newValue), ColorUtil.AS_IS);
 
         List<String> lore = getLoreList();
         if (lore != null) {
             for (int i=0; i < lore.size(); i++) // manually replaces all macros
-                lore.set(i, lore.get(i).replace(d + findValue + d, newValue));
+                lore.set(i, lore.get(i).replace(delim + findValue + delim, newValue));
             lore(lore, ColorUtil.AS_IS);
         }
 

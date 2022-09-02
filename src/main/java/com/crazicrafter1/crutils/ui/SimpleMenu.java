@@ -66,8 +66,8 @@ public class SimpleMenu extends AbstractMenu {
     }
 
     public static class SBuilder extends Builder {
-        final static ItemStack PREV_1 = ItemBuilder.copyOf(Material.ARROW).name("&cBack").build();
-        private static final ItemStack BACKGROUND_1 = ItemBuilder.fromModernMaterial("BLACK_STAINED_GLASS_PANE").name(" ").build();
+        final static ItemStack PREV_1 = ItemBuilder.copy(Material.BARRIER).name("&cBack").build();
+        private static final ItemStack BACKGROUND_1 = ItemBuilder.from("BLACK_STAINED_GLASS_PANE").name(" ").build();
 
         ItemStack background;
         private final int columns;
