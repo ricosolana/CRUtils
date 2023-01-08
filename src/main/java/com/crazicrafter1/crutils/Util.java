@@ -136,6 +136,8 @@ public enum Util {
             for (int i = 0; i < baseSemver.size(); i++) {
                 if (baseSemver.get(i) < otherSemver.get(i)) {
                     return true;
+                } else if (baseSemver.get(i) > otherSemver.get(i)) {
+                    return false;
                 }
             }
         }
