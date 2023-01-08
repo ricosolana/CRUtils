@@ -4,7 +4,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import com.mojang.authlib.GameProfile;
 import me.clip.placeholderapi.PlaceholderAPI;
-import org.apache.commons.lang.Validate;
+import org.apache.commons.lang3.Validate;
 import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;

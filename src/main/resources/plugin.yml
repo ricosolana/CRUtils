@@ -4,3 +4,5 @@ main: com.crazicrafter1.crutils.Main
 api-version: 1.17
 softdepend: [ PlaceholderAPI ]
 authors: [ crazicrafter1 ]
+libraries:
+  - org.apache.commons:commons-lang3

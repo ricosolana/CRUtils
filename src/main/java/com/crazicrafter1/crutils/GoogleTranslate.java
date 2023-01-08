@@ -1,5 +1,7 @@
 package com.crazicrafter1.crutils;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -91,7 +93,7 @@ public class GoogleTranslate
 
         // deprecated in favor of org.apache.commons.text.StringEscapeUtils,
         // which isn't bundled with Minecraft
-        return org.apache.commons.lang.StringEscapeUtils.unescapeHtml(match);
+        return StringEscapeUtils.unescapeHtml4(match); //.unescapeHtml(match);
         //return org.apache.commons.lang3.StringEscapeUtils.unescapeHtml4(match);
     }
 }

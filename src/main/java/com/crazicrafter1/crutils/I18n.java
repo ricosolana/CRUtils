@@ -3,6 +3,7 @@ package com.crazicrafter1.crutils;
 import java.util.ResourceBundle;
 
 // Internalization
+@Deprecated
 public class I18n {
 
     // language.properties do get loaded from classpath

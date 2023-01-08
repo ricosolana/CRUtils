@@ -1,20 +1,15 @@
 package com.crazicrafter1.crutils;
 
-import com.google.common.collect.ImmutableMap;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
-import org.bukkit.configuration.file.YamlConfiguration;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.io.InputStreamReader;
 import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
-import static com.crazicrafter1.crutils.MathUtil.clamp;
 
 public enum ColorUtil {
     AS_IS(s -> s),
@@ -612,7 +607,9 @@ public enum ColorUtil {
     }
 
     public static Color toColor(int r, int g, int b) {
-        return Color.fromRGB(clamp(r, 0, 255), clamp(g, 0, 255), clamp(b, 0, 255));
+        return Color.fromRGB(MathUtil.clamp(r, 0, 255),
+                MathUtil.clamp(g, 0, 255),
+                MathUtil.clamp(b, 0, 255));
     }
 
     public static Color toColor(int rgb) {
