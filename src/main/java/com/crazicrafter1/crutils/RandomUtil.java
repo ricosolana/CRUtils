@@ -43,22 +43,24 @@ public enum RandomUtil {
         return i <= (float) (random.nextInt(100) + 1) / 100f;
     }
 
-    public static @Nullable
-    <T> T getRandom(@Nonnull Stream<T> stream) {
-        return stream
-                .skip((int) (stream.count() * Math.random()))
-                .findFirst().orElse(null);
-    }
+    //public static @Nullable
+    //<T> T getRandom(@Nonnull Stream<T> stream) {
+    //    // return
+    //    return stream
+    //            .skip((int) (stream.count() * Math.random()))
+    //            .findFirst().orElse(null);
+    //}
 
     public static @Nullable
     <T> T getRandom(@Nonnull T[] values) {
-        return getRandom(Arrays.stream(values));
-        //return values[(int) (values.length * Math.random())];
+        //return getRandom(Arrays.stream(values));
+        return values[(int) (values.length * Math.random())];
     }
 
     public static @Nullable
     <T> T getRandom(@Nonnull Collection<T> collection) {
-        return getRandom(collection.stream());
+        return (T) collection.toArray();
+        //return getRandom(collection.stream());
     }
 
     public static @Nullable
