@@ -16,7 +16,7 @@ import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-public final class ParallaxMenu extends SimpleMenu {
+public final class ListMenu extends SimpleMenu {
 
     //todo add a customizable area size for this menu
 
@@ -31,21 +31,21 @@ public final class ParallaxMenu extends SimpleMenu {
 
     private int page = 1;
 
-    private final BiFunction<PBuilder, Player, List<Button>> orderedButtonsFunc;
+    private final BiFunction<LBuilder, Player, List<Button>> orderedButtonsFunc;
     private final boolean async;
 
     private List<Button> orderedButtons = new ArrayList<>();
     //public List<Button> subset = new ArrayList<>();
 
-    private ParallaxMenu(Player player,
-                         Function<Player, String> getTitleFunction,
-                         HashMap<Integer, Button> buttons,
-                         Consumer<Player> openFunction,
-                         BiFunction<Player, Boolean, Result> closeFunction,
-                         Builder thisBuilder,
-                         ItemStack background,
-                         BiFunction<PBuilder, Player, List<Button>> orderedButtonsFunc,
-                         boolean async
+    private ListMenu(Player player,
+                     Function<Player, String> getTitleFunction,
+                     HashMap<Integer, Button> buttons,
+                     Consumer<Player> openFunction,
+                     BiFunction<Player, Boolean, Result> closeFunction,
+                     Builder thisBuilder,
+                     ItemStack background,
+                     BiFunction<LBuilder, Player, List<Button>> orderedButtonsFunc,
+                     boolean async
     ) {
         super(player, getTitleFunction, buttons, openFunction, closeFunction, thisBuilder, background, 6);
         //this.orderedButtons = orderedButtons;
@@ -65,7 +65,7 @@ public final class ParallaxMenu extends SimpleMenu {
                 @Override
                 public void run() {
                     try {
-                        List<Button> inner = orderedButtonsFunc.apply((PBuilder) builder, player);
+                        List<Button> inner = orderedButtonsFunc.apply((LBuilder) builder, player);
 
                         new BukkitRunnable() {
                             @Override
@@ -82,7 +82,7 @@ public final class ParallaxMenu extends SimpleMenu {
                 }
             }.runTaskAsynchronously(com.crazicrafter1.crutils.Main.getInstance());
         } else {
-            this.orderedButtons = orderedButtonsFunc.apply((PBuilder) builder, player);
+            this.orderedButtons = orderedButtonsFunc.apply((LBuilder) builder, player);
             rePage();
         }
 
@@ -156,22 +156,22 @@ public final class ParallaxMenu extends SimpleMenu {
         }
     }
 
-    public static class PBuilder extends SBuilder {
-        private BiFunction<PBuilder, Player, List<Button>> orderedButtonsFunc;
+    public static class LBuilder extends SBuilder {
+        private BiFunction<LBuilder, Player, List<Button>> orderedButtonsFunc;
         private boolean async;
 
-        public PBuilder() {
+        public LBuilder() {
             super(6);
         }
 
-        public PBuilder addAll(BiFunction<PBuilder, Player, List<Button>> orderedButtonsFunc) {
+        public LBuilder addAll(BiFunction<LBuilder, Player, List<Button>> orderedButtonsFunc) {
             Validate.notNull(orderedButtonsFunc);
             this.orderedButtonsFunc = orderedButtonsFunc;
 
             return this;
         }
 
-        public PBuilder addAllAsync(BiFunction<PBuilder, Player, List<Button>> orderedButtonsFunc) {
+        public LBuilder addAllAsync(BiFunction<LBuilder, Player, List<Button>> orderedButtonsFunc) {
             Validate.notNull(orderedButtonsFunc);
             this.orderedButtonsFunc = orderedButtonsFunc;
             async = true;
@@ -197,80 +197,80 @@ public final class ParallaxMenu extends SimpleMenu {
 
 
         @Override
-        public PBuilder title(Function<Player, String> getTitleFunction) {
-            return (PBuilder) super.title(getTitleFunction);
+        public LBuilder title(Function<Player, String> getTitleFunction) {
+            return (LBuilder) super.title(getTitleFunction);
         }
 
         @Override
-        public PBuilder title(Function<Player, String> getTitleFunction, ColorUtil titleColorMode) {
-            return (PBuilder) super.title(getTitleFunction, titleColorMode);
+        public LBuilder title(Function<Player, String> getTitleFunction, ColorUtil titleColorMode) {
+            return (LBuilder) super.title(getTitleFunction, titleColorMode);
         }
 
         @Override
-        public PBuilder childButton(int x, int y, Function<Player, ItemStack> getItemStackFunction, Builder otherMenu) {
+        public LBuilder childButton(int x, int y, Function<Player, ItemStack> getItemStackFunction, Builder otherMenu) {
             Validate.isTrue(!(x >= ITEM_X && x <= ITEM_X2 && y >= ITEM_Y && y <= ITEM_Y2),
                     "x, y must not be within center block (" + x + ", " + y + ")");
             Validate.isTrue(!((x == 0 || x == 8) && y == 5), "button must not overlap page buttons");
-            return (PBuilder) super.childButton(x, y, getItemStackFunction, otherMenu);
+            return (LBuilder) super.childButton(x, y, getItemStackFunction, otherMenu);
         }
 
         @Override
-        public PBuilder button(int x, int y, Button.Builder button) {
+        public LBuilder button(int x, int y, Button.Builder button) {
             // inverse case to show the block, and not block
             Validate.isTrue(!(x >= ITEM_X && x <= ITEM_X2 && y >= ITEM_Y && y <= ITEM_Y2),
                     "x, y must not be within center block (" + x + ", " + y + ")");
             Validate.isTrue(!((x == 0 || x == 8) && y == 5), "button must not overlap page buttons");
-            return (PBuilder) super.button(x, y, button);
+            return (LBuilder) super.button(x, y, button);
         }
 
         @Override
-        public PBuilder onOpen(Consumer<Player> openFunction) {
-            return (PBuilder) super.onOpen(openFunction);
+        public LBuilder onOpen(Consumer<Player> openFunction) {
+            return (LBuilder) super.onOpen(openFunction);
         }
 
         @Override
-        public PBuilder onClose(BiFunction<Player, Boolean, Result> closeFunction) {
-            return (PBuilder) super.onClose(closeFunction);
+        public LBuilder onClose(BiFunction<Player, Boolean, Result> closeFunction) {
+            return (LBuilder) super.onClose(closeFunction);
         }
 
         @Override
-        public PBuilder onClose(Function<Player, Result> closeFunction) {
-            return (PBuilder) super.onClose(closeFunction);
+        public LBuilder onClose(Function<Player, Result> closeFunction) {
+            return (LBuilder) super.onClose(closeFunction);
         }
 
         @Override
-        public PBuilder background() {
-            return (PBuilder) super.background();
+        public LBuilder background() {
+            return (LBuilder) super.background();
         }
 
         @Override
-        public PBuilder background(ItemStack itemStack) {
-            return (PBuilder) super.background(itemStack);
+        public LBuilder background(ItemStack itemStack) {
+            return (LBuilder) super.background(itemStack);
         }
 
         @Override
-        public PBuilder parentButton(int x, int y) {
-            return (PBuilder) super.parentButton(x, y);
+        public LBuilder parentButton(int x, int y) {
+            return (LBuilder) super.parentButton(x, y);
         }
 
         @Override
-        public PBuilder parentButton(int x, int y, Function<Player, ItemStack> getItemStackFunction) {
+        public LBuilder parentButton(int x, int y, Function<Player, ItemStack> getItemStackFunction) {
             Validate.isTrue(!(x >= ITEM_X && x <= ITEM_X2 && y >= ITEM_Y && y <= ITEM_Y2),
                     "x, y must not be within center block (" + x + ", " + y + ")");
-            return (PBuilder) super.parentButton(x, y, getItemStackFunction);
+            return (LBuilder) super.parentButton(x, y, getItemStackFunction);
         }
 
         @Override
-        public PBuilder bind(int x, int y, EnumPress press, Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen) {
-            return (PBuilder) super.bind(x, y, press, getItemStackFunction, menuToOpen);
+        public LBuilder bind(int x, int y, EnumPress press, Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen) {
+            return (LBuilder) super.bind(x, y, press, getItemStackFunction, menuToOpen);
         }
 
         @Override
-        public ParallaxMenu open(Player player) {
+        public ListMenu open(Player player) {
             HashMap<Integer, Button> btns = new HashMap<>();
             buttons.forEach((i, b) -> btns.put(i, b.get()));
 
-            ParallaxMenu menu = new ParallaxMenu(player,
+            ListMenu menu = new ListMenu(player,
                                                  getTitleFunction,
                                                  btns,
                                                  openFunction,
