@@ -119,7 +119,7 @@ public class TextMenu extends AbstractMenu {
         public TBuilder onComplete(@Nonnull TriFunction<Player, String, TBuilder, Result> completeFunction) {
             return (TBuilder) this.button(SLOT_OUTPUT, new Button.Builder()
                     .lmb((interact) -> completeFunction.apply(interact.player,
-                            Util.def(ItemBuilder.mutable(interact.clickedItem).getName(), ""), (TBuilder) interact.menuBuilder))
+                            Util.def(ItemBuilder.mut(interact.clickedItem).getName(), ""), (TBuilder) interact.menuBuilder))
             );
         }
 
@@ -163,7 +163,7 @@ public class TextMenu extends AbstractMenu {
             Validate.notNull(loreColorMode, "loreColorMode must not be null");
 
             return (TBuilder) this.button(SLOT_LEFT, new Button.Builder()
-                    .icon((p) -> ItemBuilder.copyOf(Material.IRON_SWORD)
+                    .icon((p) -> ItemBuilder.copy(Material.IRON_SWORD)
                             .name(Objects.requireNonNull(itemNameFunction.apply(p), "itemNameFunction must not return null"), nameColorMode)
                             .lore(itemLoreFunction != null ? Objects.requireNonNull(itemLoreFunction.apply(p), "itemLoreFunction must not return null") : null, loreColorMode).build()));
         }
@@ -199,7 +199,7 @@ public class TextMenu extends AbstractMenu {
             Validate.notNull(nameColorMode, "nameColorMode must not be null");
             Validate.notNull(loreColorMode, "loreColorMode must not be null");
             return (TBuilder) super.button(SLOT_RIGHT, new Button.Builder()
-                    .icon((p) -> ItemBuilder.copyOf(Material.IRON_SWORD)
+                    .icon((p) -> ItemBuilder.copy(Material.IRON_SWORD)
                             .name(Objects.requireNonNull(itemNameFunction.apply(p), "Name function returns null"), nameColorMode)
                             .lore(itemLoreFunction != null ? Objects.requireNonNull(itemLoreFunction.apply(p), "Lore function returns null") : null, loreColorMode).build()));
         }

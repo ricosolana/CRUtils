@@ -20,7 +20,7 @@ class ResultText extends Result {
         Validate.isTrue(menu instanceof TextMenu, "Must be used with text menu");
 
         menu.inventory.setItem(TextMenu.SLOT_LEFT,
-                ItemBuilder.copyOf(Objects.requireNonNull(
+                ItemBuilder.copy(Objects.requireNonNull(
                         menu.inventory.getItem(TextMenu.SLOT_LEFT)))
                         .name(text, ColorUtil.STRIP_RENDERED).build());
 

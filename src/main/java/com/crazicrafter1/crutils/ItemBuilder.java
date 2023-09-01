@@ -21,14 +21,10 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
 import java.util.*;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-/**
- * Mutqble itembuilder
- * changeable
- * return refwrences to this everywhere
- * high performancd
- */
 @SuppressWarnings({"UnusedReturnValue", "unused"})
 public class ItemBuilder implements ConfigurationSerializable {
 
@@ -133,10 +129,11 @@ public class ItemBuilder implements ConfigurationSerializable {
         return map;
     }
 
-    private ItemStack itemStack;
+    private final ItemStack itemStack;
 
     private ItemBuilder(ItemStack itemStack) {
-        Validate.isTrue(itemStack.getType() != Material.AIR && itemStack.getItemMeta() != null);
+        Validate.isTrue(itemStack.getType() != Material.AIR, "Cannot build from minecraft:air");
+        Validate.isTrue(itemStack.getItemMeta() != null, "Cannot build from null");
         this.itemStack = itemStack;
     }
 
@@ -161,37 +158,10 @@ public class ItemBuilder implements ConfigurationSerializable {
     }
 
 
-    // TODO remove later on
-    @Deprecated
-    public static ItemBuilder copyOf(Material material) {
-        return copy(new ItemStack(material));
-    }
-
-    @Deprecated
-    public static ItemBuilder copyOf(ItemStack itemStack) {
-        return copy(itemStack);
-    }
-
-    @Deprecated
-    public static ItemBuilder copyOf(ItemBuilder builder) {
-        return copy(builder.build());
-    }
-
-    @Deprecated
-    public static ItemBuilder mutable(ItemStack itemStack) {
-        return mut(itemStack);
-    }
-
-    @Deprecated
-    public static ItemBuilder mutable(ItemBuilder builder) {
-        return mut(builder.build());
-    }
-
-
 
     /**
-     * Version safe item getter
-     * @param modern Name of the item in 1.18
+     * Version safe item resolver
+     * @param modern Name of the item in 1.20.1
      * @throws IllegalArgumentException if an item cannot be matched
      */
     @SuppressWarnings("deprecation")
@@ -225,11 +195,6 @@ public class ItemBuilder implements ConfigurationSerializable {
             return copy(material);
 
         throw new IllegalArgumentException("Material " + modern + " does not exist ");
-    }
-
-    @Deprecated
-    public static ItemBuilder fromModernMaterial(String MODERN_NAME) {
-        return from(MODERN_NAME);
     }
 
     /**
@@ -452,15 +417,11 @@ public class ItemBuilder implements ConfigurationSerializable {
     public ItemBuilder material(String modern) {
         ItemBuilder itemBuilder = from(modern);
         material(itemBuilder.getMaterial());
-        if (Version.AT_MOST_v1_13.a())
+        if (Version.AT_MOST_v1_13.a()) {
+            //noinspection deprecation
             itemStack.setDurability(itemBuilder.itemStack.getDurability());
+        }
         return this;
-    }
-
-    // TODO remove after a few releases
-    @Deprecated
-    public ItemBuilder modernMaterial(String s) {
-        return material(s);
     }
 
     /**
@@ -574,10 +535,8 @@ public class ItemBuilder implements ConfigurationSerializable {
 
         ItemMeta meta = getMeta();
 
-        if (perLineFormat != null) for (int i = 0; i < lore.size(); i++)
-            lore.set(i, String.format(perLineFormat, mode.a(lore.get(i))));
-        else for (int i = 0; i < lore.size(); i++)
-            lore.set(i, mode.a(lore.get(i)));
+        if (perLineFormat != null) lore.replaceAll(s -> String.format(perLineFormat, mode.a(s)));
+        else lore.replaceAll(mode::a);
 
         meta.setLore(lore);
 
@@ -610,8 +569,8 @@ public class ItemBuilder implements ConfigurationSerializable {
 
         List<String> lore = getLoreList();
         if (lore != null) {
-            for (int i=0; i < lore.size(); i++) // manually replaces all macros
-                lore.set(i, lore.get(i).replace(delim + findValue + delim, newValue));
+            // manually replaces all macros
+            lore.replaceAll(s -> s.replace(delim + findValue + delim, newValue));
             lore(lore, ColorUtil.AS_IS);
         }
 
@@ -633,9 +592,8 @@ public class ItemBuilder implements ConfigurationSerializable {
 
             List<String> lore = getLoreList();
             if (lore != null) {
-                for (int i = 0; i < lore.size(); i++)
-                    lore.set(i, PlaceholderAPI.setPlaceholders(
-                            p, lore.get(i)));
+                lore.replaceAll(text -> PlaceholderAPI.setPlaceholders(
+                        p, text));
                 return lore(lore);
             }
         }

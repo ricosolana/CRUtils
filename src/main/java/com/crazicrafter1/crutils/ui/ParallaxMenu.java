@@ -97,7 +97,7 @@ public final class ParallaxMenu extends SimpleMenu {
             // Previous page
             //
             button(0, 5, new Button.Builder()
-                    .icon((p) -> ItemBuilder.copyOf(Material.ARROW).name("&aPrevious Page").lore("&ePage " + (page-1)).build())
+                    .icon((p) -> ItemBuilder.copy(Material.ARROW).name("&aPrevious Page").lore("&ePage " + (page-1)).build())
                     .lmb((interact) -> {
                         prevPage();
                         return null;
@@ -108,7 +108,7 @@ public final class ParallaxMenu extends SimpleMenu {
 
         if (page < getMaxPages(orderedButtons.size())) {
             button(8, 5, new Button.Builder()
-                    .icon((p) -> ItemBuilder.copyOf(Material.ARROW).name("&aNext Page").lore("&ePage " + (page+1)).build())
+                    .icon((p) -> ItemBuilder.copy(Material.ARROW).name("&aNext Page").lore("&ePage " + (page+1)).build())
                     .lmb((interact) -> {
                         nextPage(orderedButtons.size());
                         return null;

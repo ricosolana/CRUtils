@@ -64,7 +64,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.withType(Jar) {
-    destinationDirectory = file("C:\\Users\\rico\\Documents\\MinecraftDev\\Servers\\1.20 spigot\\plugins\\")
+    destinationDirectory = file("C:\\Users\\rico\\Documents\\MinecraftDev\\Servers\\1.20.1 paper\\plugins\\")
     //destinationDirectory = file('C:\\Users\\Rico\\Downloads\\mohist_server_test\\plugins\\')
 }
 
@@ -87,6 +87,8 @@ jar {
     onlyIf { !sourceSets.main.allSource.files.isEmpty() }
     archiveFileName = project.plugin_name + ".jar"
 }
+
+build.dependsOn(shadowJar)
 
 processResources {
     def props = [version: version]
