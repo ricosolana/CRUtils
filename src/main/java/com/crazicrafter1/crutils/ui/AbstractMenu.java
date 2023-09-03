@@ -80,10 +80,6 @@ public abstract class AbstractMenu {
 
     final void placeButtons() {
         for (Map.Entry<Integer,Button> entry : buttons.entrySet()) {
-            // Capture index is -1, so skip it
-            //if (entry.getKey() == -1)
-                //continue;
-
             Function<Player, ItemStack> supplier = entry.getValue().getItemStackFunction;
             if (supplier != null) {
                 ItemStack itemStack = supplier.apply(player);
@@ -121,19 +117,20 @@ public abstract class AbstractMenu {
         }
     }
 
-    final @Nonnull BiConsumer<AbstractMenu, InventoryClickEvent> invokeButtonAt(InventoryClickEvent event) {
+    final @Nullable BiConsumer<AbstractMenu, InventoryClickEvent> invokeButtonAt(InventoryClickEvent event) {
         // Test capture button first
-        if (captureButton != null) {
-            BiConsumer<AbstractMenu, InventoryClickEvent> result = invokeButton(event, captureButton);
-            if (result != null)
-                return result;
-        }
+        BiConsumer<AbstractMenu, InventoryClickEvent> result = invokeButton(event, captureButton);
+        if (result != null)
+            return result;
 
         Button button = buttons.get(event.getSlot());
-        return Objects.requireNonNull(invokeButton(event, button));
+        return invokeButton(event, button);
     }
 
-    private @Nullable BiConsumer<AbstractMenu, InventoryClickEvent> invokeButton(InventoryClickEvent event, @Nonnull Button button) {
+    private @Nullable BiConsumer<AbstractMenu, InventoryClickEvent> invokeButton(InventoryClickEvent event, @Nullable Button button) {
+        if (button == null)
+            return null;
+
         Button.Event e =
                 new Button.Event(player,
                         Objects.requireNonNull(event.getCursor()).getType() != Material.AIR ?
