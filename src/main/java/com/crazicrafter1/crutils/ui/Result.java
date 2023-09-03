@@ -1,72 +1,75 @@
 package com.crazicrafter1.crutils.ui;
 
+import com.crazicrafter1.crutils.ColorUtil;
+import com.crazicrafter1.crutils.ItemBuilder;
+import org.apache.commons.lang3.Validate;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 
-public abstract class Result {
+import javax.annotation.Nullable;
+import java.util.Objects;
+import java.util.function.BiConsumer;
 
-    abstract void invoke(AbstractMenu menu, InventoryClickEvent event);
+// TODO use blank enum and functional interfaces instead
+public enum Result {
+    ;
 
-    /**
-     * Let the player take the item
-     * @return new {@link ResultGrab}
-     */
-    public static Result GRAB() {
-        return new ResultGrab();
+    // Allow the player to equip the item onto their cursor
+    public static BiConsumer<AbstractMenu, InventoryClickEvent> grab() {
+        return (menu, e) -> e.setCancelled(false);
     }
 
-    /**
-     * Open a menu
-     * @param builder a menu builder {@link AbstractMenu.Builder}
-     * @return new {@link ResultOpen}
-     */
-    public static Result OPEN(AbstractMenu.Builder builder) {
-        return new ResultOpen(builder);
+    // Open a menu by MenuBuilder
+    public static BiConsumer<AbstractMenu, InventoryClickEvent> open(AbstractMenu.Builder builder) {
+        return (menu, e) -> builder.open(menu.player);
     }
 
-    /**
-     * Close the menu
-     * @return new {@link ResultClose}
-     */
-    public static Result CLOSE() {
-        return new ResultClose();
+    // Close the currently opened menu
+    public static BiConsumer<AbstractMenu, InventoryClickEvent> close() {
+        return (menu, e) -> menu.closeInventory(true);
     }
 
-    /**
-     * Return to the parent menu if the player closed the menu
-     * @return new {@link ResultParent}
-     */
-    public static Result PARENT() {
-        return new ResultParent();
+    // Open the parent menu of the current menu
+    public static BiConsumer<AbstractMenu, InventoryClickEvent> parent() {
+        return (menu, e) -> new BukkitRunnable() {
+            @Override
+            public void run() {
+                menu.status = AbstractMenu.Status.REROUTING;
+                menu.builder.parentMenuBuilder.open(menu.player);
+            }
+        }.runTaskLater(com.crazicrafter1.crutils.Main.getInstance(), 0);
     }
 
-    /**
-     * Refresh the menu and its contents
-     * @return {@link ResultRefresh}
-     */
-    public static Result REFRESH() {
-        return new ResultRefresh();
+    // Regenerate elements in the current menu
+    public static BiConsumer<AbstractMenu, InventoryClickEvent> refresh() {
+        return (menu, e) -> new BukkitRunnable() {
+            @Override
+            public void run() {
+                menu.inventory.clear();
+                menu.openInventory(false);
+            }
+        }.runTaskLater(com.crazicrafter1.crutils.Main.getInstance(), 0);
     }
 
-    /**
-     * Display a message in a {@link TextMenu}
-     * @param text the text
-     * @return new {@link ResultText}
-     */
-    public static Result TEXT(String text) {
-        return new ResultText(text);
+    // Edits the text within the left slot of a text/anvil menu
+    public static BiConsumer<AbstractMenu, InventoryClickEvent> text(String text) {
+        return (menu, e) -> {
+            Validate.isTrue(menu instanceof TextMenu, "Must be used with text menu");
+
+            menu.inventory.setItem(TextMenu.SLOT_LEFT,
+                    ItemBuilder.copy(Objects.requireNonNull(
+                                    menu.inventory.getItem(TextMenu.SLOT_LEFT)))
+                            .name(text, ColorUtil.STRIP_RENDERED).build());
+        };
     }
 
-    /**
-     * Send the player a message
-     * @param message the message
-     * @return new {@link ResultMessage}
-     */
-    public static Result MESSAGE(String message) {
-        return new ResultMessage(message);
+    // Send a message to the player
+    public static BiConsumer<AbstractMenu, InventoryClickEvent> message(String message) {
+        return (menu, e) -> menu.player.sendMessage(message);
     }
 
-    public static Result REFRESH_GRAB() {
-        return new ResultRefreshGrab();
+    // Default empty action. Do nothing.
+    public static @Nullable BiConsumer<AbstractMenu, InventoryClickEvent> ok() {
+        return null;
     }
-
 }

@@ -24,16 +24,16 @@ public class WeakWeightedMap<K> {
         }
     }
 
-    public static <K> WeightedRandomContainer<K> cumulative(LinkedHashMap<K, Integer> cumulative) {
-        WeightedRandomContainer<K> container = new WeightedRandomContainer<>();
-        int prevSum = 0;
-        for (Map.Entry<K, Integer> entry : cumulative.entrySet()) {
-            int weight = entry.getValue() - prevSum;
-            container.add(entry.getKey(), weight);
-            prevSum = entry.getValue();
-        }
-        return container;
-    }
+    //public static <K> WeightedRandomContainer<K> cumulative(LinkedHashMap<K, Integer> cumulative) {
+    //    WeightedRandomContainer<K> container = new WeightedRandomContainer<>();
+    //    int prevSum = 0;
+    //    for (Map.Entry<K, Integer> entry : cumulative.entrySet()) {
+    //        int weight = entry.getValue() - prevSum;
+    //        container.add(entry.getKey(), weight);
+    //        prevSum = entry.getValue();
+    //    }
+    //    return container;
+    //}
 
     public int getWeight() {
         return weight;

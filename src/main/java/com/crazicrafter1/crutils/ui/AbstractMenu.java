@@ -17,6 +17,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -41,8 +42,10 @@ public abstract class AbstractMenu {
     final Function<Player, String> getTitleFunction;
     final HashMap<Integer, Button> buttons;
     final Consumer<Player> openFunction;
-    final BiFunction<Player, Boolean, Result> closeFunction;
+    final BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction;
     final Builder builder;
+
+    final Button captureButton; // called prior to any other buttons; can cancel other buttons
 
     Inventory inventory;
     Status status;
@@ -51,12 +54,12 @@ public abstract class AbstractMenu {
                  Function<Player, String> getTitleFunction,
                  HashMap<Integer, Button> buttons,
                  Consumer<Player> openFunction,
-                 BiFunction<Player, Boolean, Result> closeFunction,
-                 Builder builder
+                 BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction,
+                 Builder builder,
+                 @Nullable Button.Builder captureButton
     ) {
         Validate.notNull(player, "Player cannot be null");
         Validate.notNull(getTitleFunction);
-
 
         this.player = player;
 
@@ -65,6 +68,7 @@ public abstract class AbstractMenu {
         this.openFunction = openFunction;
         this.closeFunction = closeFunction;
         this.builder = builder;
+        this.captureButton = captureButton != null ? captureButton.get() : null;
     }
 
     void openInventory(boolean sendOpenPacket) {
@@ -74,8 +78,12 @@ public abstract class AbstractMenu {
         this.status = Status.OPEN;
     }
 
-    void placeButtons() {
+    final void placeButtons() {
         for (Map.Entry<Integer,Button> entry : buttons.entrySet()) {
+            // Capture index is -1, so skip it
+            //if (entry.getKey() == -1)
+                //continue;
+
             Function<Player, ItemStack> supplier = entry.getValue().getItemStackFunction;
             if (supplier != null) {
                 ItemStack itemStack = supplier.apply(player);
@@ -113,21 +121,28 @@ public abstract class AbstractMenu {
         }
     }
 
-    final Result invokeButtonAt(InventoryClickEvent event) {
-        Button button = buttons.get(event.getSlot());
-
-        if (button == null) {
-            return null;
+    final @Nonnull BiConsumer<AbstractMenu, InventoryClickEvent> invokeButtonAt(InventoryClickEvent event) {
+        // Test capture button first
+        if (captureButton != null) {
+            BiConsumer<AbstractMenu, InventoryClickEvent> result = invokeButton(event, captureButton);
+            if (result != null)
+                return result;
         }
 
+        Button button = buttons.get(event.getSlot());
+        return Objects.requireNonNull(invokeButton(event, button));
+    }
+
+    private @Nullable BiConsumer<AbstractMenu, InventoryClickEvent> invokeButton(InventoryClickEvent event, @Nonnull Button button) {
         Button.Event e =
                 new Button.Event(player,
                         Objects.requireNonNull(event.getCursor()).getType() != Material.AIR ?
                                 event.getCursor() : null,
                         event.getCurrentItem(),
                         event.isShiftClick(),
-                        event.getClick() == ClickType.NUMBER_KEY ? event.getHotbarButton() : -1,
-                        builder);
+                        event.getHotbarButton(), // -1 if not NUMBER_KEY
+                        builder
+                );
 
         if (event.isLeftClick() && button.leftClickFunction != null)
             return button.leftClickFunction.apply(e);
@@ -138,17 +153,17 @@ public abstract class AbstractMenu {
         else if (event.getClick() == ClickType.NUMBER_KEY && button.numberKeyFunction != null)
             return button.numberKeyFunction.apply(e);
         else
-            return null;
+            return Result.ok();
     }
 
-    void invokeResult(InventoryClickEvent event, Result result) {
+    final void invokeResult(InventoryClickEvent event, @Nullable BiConsumer<AbstractMenu, InventoryClickEvent> result) {
         if (result != null)
-            result.invoke(this, event);
+            result.accept(this, event);
     }
 
     abstract void onInventoryClick(InventoryClickEvent event);
 
-    void onInventoryDrag(InventoryDragEvent event) {
+    final void onInventoryDrag(InventoryDragEvent event) {
         for (int slot = 0; slot < inventory.getSize(); slot++) {
             if (event.getRawSlots().contains(slot)) {
                 event.setCancelled(true);
@@ -179,7 +194,9 @@ public abstract class AbstractMenu {
         public Builder parentMenuBuilder;
         Consumer<Player> openFunction;
 
-        BiFunction<Player, Boolean, Result> closeFunction;
+        BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction;
+
+        Button.Builder captureButton;
 
         public Builder title(String staticTitle) {
             return this.title(p -> staticTitle);
@@ -213,20 +230,20 @@ public abstract class AbstractMenu {
          * @param closeFunction the runnable
          * @return this
          */
-        public Builder onClose(BiFunction<Player, Boolean, Result> closeFunction) {
+        public Builder onClose(BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
             Validate.notNull(closeFunction);
             this.closeFunction = closeFunction;
             return this;
         }
 
-        public Builder onClose(Function<Player, Result> closeFunction) {
+        public Builder onClose(Function<Player, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
             Validate.notNull(closeFunction);
             this.closeFunction = (p, request) -> closeFunction.apply(p);
             return this;
         }
 
         public Builder parentOnClose() {
-            onClose(p -> Result.PARENT());
+            onClose(p -> Result.parent());
             return this;
         }
 
@@ -237,7 +254,7 @@ public abstract class AbstractMenu {
          * @return this
          */
         /// fixme too tacky open-ended usage
-        public final Builder parent(Builder builder) {
+        public final Builder parent(@Nonnull Builder builder) {
             Validate.notNull(builder);
             parentMenuBuilder = builder;
             return this;
@@ -249,7 +266,7 @@ public abstract class AbstractMenu {
         }
 
         /// fixme too tacky open-ended usage
-        final Builder button(int slot, Button.Builder button, @Nullable Button.Builder[] resOld) {
+        final Builder button(int slot, @Nonnull Button.Builder button, @Nullable Button.Builder[] resOld) {
             Validate.notNull(button);
             Button.Builder b = buttons.putIfAbsent(slot, button);
             if (resOld != null) resOld[0] = b;
@@ -266,6 +283,13 @@ public abstract class AbstractMenu {
                 old[0] = buttons.get(slot);
 
             return old[0];
+        }
+
+        // Called when any element is clicked, regardless of button or not
+        public Builder capture(Button.Builder button) {
+            this.captureButton = button;
+
+            return this;
         }
 
         /**

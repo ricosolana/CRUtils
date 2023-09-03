@@ -2,8 +2,10 @@ package com.crazicrafter1.crutils.ui;
 
 import org.apache.commons.lang3.Validate;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.function.BiConsumer;
 import java.util.function.Function;
 
 public class Button {
@@ -32,16 +34,16 @@ public class Button {
     }
 
     Function<Player, ItemStack> getItemStackFunction;
-    final Function<Event, Result> leftClickFunction;
-    final Function<Event, Result> middleClickFunction;
-    final Function<Event, Result> rightClickFunction;
-    final Function<Event, Result> numberKeyFunction;
+    final Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> leftClickFunction;
+    final Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> middleClickFunction;
+    final Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickFunction;
+    final Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> numberKeyFunction;
 
     Button(Function<Player, ItemStack> getItemStackFunction,
-           Function<Event, Result> leftClickFunction,
-           Function<Event, Result> middleClickFunction,
-           Function<Event, Result> rightClickFunction,
-           Function<Event, Result> numberKeyFunction) {
+           Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> leftClickFunction,
+           Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> middleClickFunction,
+           Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickFunction,
+           Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> numberKeyFunction) {
         this.getItemStackFunction = getItemStackFunction;
         this.leftClickFunction = leftClickFunction;
         this.middleClickFunction = middleClickFunction;
@@ -51,32 +53,32 @@ public class Button {
 
     public static class Builder {
         Function<Player, ItemStack> getItemStackFunction;
-        Function<Event, Result> leftClickFunction;
-        Function<Event, Result> middleClickFunction;
-        Function<Event, Result> rightClickFunction;
-        Function<Event, Result> numberKeyFunction;
+        Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> leftClickFunction;
+        Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> middleClickFunction;
+        Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickFunction;
+        Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> numberKeyFunction;
 
         public Builder icon(Function<Player, ItemStack> getItemStackFunction) {
             this.getItemStackFunction = getItemStackFunction;
             return this;
         }
 
-        public Builder lmb(Function<Event, Result> leftClickFunction) {
+        public Builder lmb(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> leftClickFunction) {
             this.leftClickFunction = leftClickFunction;
             return this;
         }
 
-        public Builder mmb(Function<Event, Result> middleClickFunction) {
+        public Builder mmb(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> middleClickFunction) {
             this.middleClickFunction = middleClickFunction;
             return this;
         }
 
-        public Builder rmb(Function<Event, Result> rightClickFunction) {
+        public Builder rmb(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickFunction) {
             this.rightClickFunction = rightClickFunction;
             return this;
         }
 
-        public Builder num(Function<Event, Result> numberKeyFunction) {
+        public Builder num(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> numberKeyFunction) {
             this.numberKeyFunction = numberKeyFunction;
             return this;
         }
@@ -92,7 +94,7 @@ public class Button {
                             EnumPress press) {
             Validate.notNull(menuToOpen, "Supplied menu must not be null");
 
-            return this.append(press, (clickEvent) -> Result.OPEN(menuToOpen));
+            return this.append(press, (clickEvent) -> Result.open(menuToOpen));
         }
 
         /**
@@ -110,7 +112,7 @@ public class Button {
 
         public Builder child(AbstractMenu.Builder parentBuilder,
                              AbstractMenu.Builder menuToOpen,
-                             Function<Event, Result> rightClickListener) {
+                             Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickListener) {
 
             Validate.notNull(parentBuilder);
 
@@ -125,7 +127,7 @@ public class Button {
          * @param func
          * @return
          */
-        public Builder append(EnumPress press, Function<Event, Result> func) {
+        public Builder append(EnumPress press, Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> func) {
             if (press != null)
                 switch (press) {
                     case LMB: return lmb(func);

@@ -6,12 +6,15 @@ import com.crazicrafter1.crutils.MathUtil;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -41,13 +44,14 @@ public final class ListMenu extends SimpleMenu {
                      Function<Player, String> getTitleFunction,
                      HashMap<Integer, Button> buttons,
                      Consumer<Player> openFunction,
-                     BiFunction<Player, Boolean, Result> closeFunction,
+                     BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction,
                      Builder thisBuilder,
+                     @Nullable Button.Builder captureButton,
                      ItemStack background,
                      BiFunction<LBuilder, Player, List<Button>> orderedButtonsFunc,
                      boolean async
     ) {
-        super(player, getTitleFunction, buttons, openFunction, closeFunction, thisBuilder, background, 6);
+        super(player, getTitleFunction, buttons, openFunction, closeFunction, thisBuilder, captureButton, background, 6);
         //this.orderedButtons = orderedButtons;
         this.orderedButtonsFunc = orderedButtonsFunc;
         this.async = async;
@@ -229,12 +233,12 @@ public final class ListMenu extends SimpleMenu {
         }
 
         @Override
-        public LBuilder onClose(BiFunction<Player, Boolean, Result> closeFunction) {
+        public LBuilder onClose(BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
             return (LBuilder) super.onClose(closeFunction);
         }
 
         @Override
-        public LBuilder onClose(Function<Player, Result> closeFunction) {
+        public LBuilder onClose(Function<Player, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
             return (LBuilder) super.onClose(closeFunction);
         }
 
@@ -266,19 +270,25 @@ public final class ListMenu extends SimpleMenu {
         }
 
         @Override
+        public LBuilder capture(Button.Builder button) {
+            return (LBuilder) super.capture(button);
+        }
+
+        @Override
         public ListMenu open(Player player) {
             HashMap<Integer, Button> btns = new HashMap<>();
             buttons.forEach((i, b) -> btns.put(i, b.get()));
 
             ListMenu menu = new ListMenu(player,
-                                                 getTitleFunction,
-                                                 btns,
-                                                 openFunction,
-                                                 closeFunction,
-                                                 this,
-                                                 background,
-                                                 orderedButtonsFunc,
-                                                 async);
+                                         getTitleFunction,
+                                         btns,
+                                         openFunction,
+                                         closeFunction,
+                                         this,
+                                         captureButton,
+                                         background,
+                                         orderedButtonsFunc,
+                                         async);
 
             menu.openInventory(true);
 

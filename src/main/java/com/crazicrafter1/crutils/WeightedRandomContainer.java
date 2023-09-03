@@ -5,33 +5,31 @@ import java.util.*;
 
 public class WeightedRandomContainer<K> {
 
-    private final HashMap<K, Integer> weights;
-    private int weight;
+    private final Map<K, Integer> weights;
+    private int totalWeight;
 
-    public WeightedRandomContainer() {
-        this.weights = new HashMap<>();
-    }
+    //public WeightedRandomContainer() {
+    //    this.weights = new HashMap<>();
+    //}
 
     public WeightedRandomContainer(Map<K, Integer> weights) {
-        this.weights = new HashMap<>();
-        for (Map.Entry<K, Integer> entry : weights.entrySet()) {
-            add(entry.getKey(), entry.getValue());
-        }
+        this.weights = weights;
+        totalWeight = this.weights.values().stream().mapToInt(d -> d).sum();
     }
 
-    public static <K> WeightedRandomContainer<K> cumulative(LinkedHashMap<K, Integer> cumulative) {
-        WeightedRandomContainer<K> container = new WeightedRandomContainer<>();
-        int prevSum = 0;
-        for (Map.Entry<K, Integer> entry : cumulative.entrySet()) {
-            int weight = entry.getValue() - prevSum;
-            container.add(entry.getKey(), weight);
-            prevSum = entry.getValue();
-        }
-        return container;
-    }
+    //public static <K> WeightedRandomContainer<K> cumulative(LinkedHashMap<K, Integer> cumulative) {
+    //    WeightedRandomContainer<K> container = new WeightedRandomContainer<>();
+    //    int prevSum = 0;
+    //    for (Map.Entry<K, Integer> entry : cumulative.entrySet()) {
+    //        int weight = entry.getValue() - prevSum;
+    //        container.add(entry.getKey(), weight);
+    //        prevSum = entry.getValue();
+    //    }
+    //    return container;
+    //}
 
-    public int getWeight() {
-        return weight;
+    public int getTotalWeight() {
+        return this.totalWeight;
     }
 
     /**
@@ -39,9 +37,9 @@ public class WeightedRandomContainer<K> {
      * @return the random object
      */
     public K getRandom() {
-        int rand = RandomUtil.randomRange(0, weight - 1);
+        int rand = RandomUtil.randomRange(0, this.totalWeight - 1);
 
-        for (Map.Entry<K, Integer> entry : weights.entrySet()) {
+        for (Map.Entry<K, Integer> entry : this.weights.entrySet()) {
             int w = entry.getValue();
             if (rand < w)
                 return entry.getKey();
@@ -58,7 +56,7 @@ public class WeightedRandomContainer<K> {
      */
     @Nullable
     public Integer get(K key) {
-        return weights.get(key);
+        return this.weights.get(key);
     }
 
     /**
@@ -68,9 +66,9 @@ public class WeightedRandomContainer<K> {
      */
     public void add(K key, int weight) {
         //if (weights.containsKey(key)) throw new RuntimeException("Cannot add new")
-        remove(key);
-        weights.put(key, weight);
-        this.weight += weight;
+        this.remove(key);
+        this.weights.put(key, weight);
+        this.totalWeight += weight;
     }
 
     /**
@@ -78,13 +76,13 @@ public class WeightedRandomContainer<K> {
      * @param key the key
      */
     public void remove(K key) {
-        Integer w = weights.remove(key);
+        Integer w = this.weights.remove(key);
         if (w != null)
-            this.weight -= w;
+            this.totalWeight -= w;
     }
 
     public Map<K, Integer> getMap() {
-        return Collections.unmodifiableMap(weights);
+        return Collections.unmodifiableMap(this.weights);
     }
 
     @Override

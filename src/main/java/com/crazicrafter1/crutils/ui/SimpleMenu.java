@@ -9,7 +9,9 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nullable;
 import java.util.HashMap;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -22,11 +24,12 @@ public class SimpleMenu extends AbstractMenu {
                Function<Player, String> getTitleFunction,
                HashMap<Integer, Button> buttons,
                Consumer<Player> openFunction,
-               BiFunction<Player, Boolean, Result> closeFunction,
+               BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction,
                Builder thisBuilder,
+               @Nullable Button.Builder captureButton,
                ItemStack background,
                int columns) {
-        super(player, getTitleFunction, buttons, openFunction, closeFunction, thisBuilder);
+        super(player, getTitleFunction, buttons, openFunction, closeFunction, thisBuilder, captureButton);
         this.background = background;
         this.columns = columns;
     }
@@ -37,13 +40,13 @@ public class SimpleMenu extends AbstractMenu {
         invokeResult(event, invokeButtonAt(event));
     }
 
-    void button(int x, int y, Button button) {
-        buttons.put(y*9 + x, button);
-    }
+    //void button(int x, int y, Button button) {
+    //    buttons.put(y*9 + x, button);
+    //}
 
-    void delButton(int x, int y) {
-        buttons.remove(y*9 + x);
-    }
+    //void delButton(int x, int y) {
+    //    buttons.remove(y*9 + x);
+    //}
 
     @Override
     void openInventory(boolean sendOpenPacket) {
@@ -94,12 +97,12 @@ public class SimpleMenu extends AbstractMenu {
         }
 
         @Override
-        public SBuilder onClose(BiFunction<Player, Boolean, Result> closeFunction) {
+        public SBuilder onClose(BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
             return (SBuilder) super.onClose(closeFunction);
         }
 
         @Override
-        public SBuilder onClose(Function<Player, Result> closeFunction) {
+        public SBuilder onClose(Function<Player, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
             return (SBuilder) super.onClose(closeFunction);
         }
 
@@ -119,7 +122,7 @@ public class SimpleMenu extends AbstractMenu {
 
         public SBuilder childButton(int x, int y,
                                     Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen,
-                                    Function<Button.Event, Result> rightClickListener) {
+                                    Function<Button.Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickListener) {
 
             return this.childButton(x, y, getItemStackFunction, menuToOpen, rightClickListener, true);
         }
@@ -136,7 +139,7 @@ public class SimpleMenu extends AbstractMenu {
 
         public SBuilder childButton(int x, int y,
                                     Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen,
-                                    Function<Button.Event, Result> rightClickListener, boolean addCondition) {
+                                    Function<Button.Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickListener, boolean addCondition) {
             if (addCondition) {
                 menuToOpen.parent(this);
 
@@ -176,7 +179,7 @@ public class SimpleMenu extends AbstractMenu {
 
             return this.button(x, y, new Button.Builder()
                     .icon(getItemStackFunction)
-                    .lmb((clickEvent) -> Result.PARENT()));
+                    .lmb((clickEvent) -> Result.parent()));
         }
 
         /**
@@ -214,6 +217,11 @@ public class SimpleMenu extends AbstractMenu {
             return y*9 + x;
         }
 
+        @Override
+        public SBuilder capture(Button.Builder button) {
+            return (SBuilder) super.capture(button);
+        }
+
         public SimpleMenu open(Player player) {
             HashMap<Integer, Button> btns = new HashMap<>();
             buttons.forEach((i, b) -> btns.put(i, b.get()));
@@ -224,6 +232,7 @@ public class SimpleMenu extends AbstractMenu {
                                              openFunction,
                                              closeFunction,
                                              this,
+                                             captureButton,
                                              background,
                                              columns);
 

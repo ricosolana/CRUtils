@@ -16,6 +16,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -34,11 +35,11 @@ public class TextMenu extends AbstractMenu {
                      Function<Player, String> getTitleFunction,
                      HashMap<Integer, Button> buttons,
                      Consumer<Player> openFunction,
-                     BiFunction<Player, Boolean, Result> closeFunction,
-                     Builder builder
-
+                     BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction,
+                     Builder builder,
+                     @Nullable Button.Builder captureButton
     ) {
-        super(player, getTitleFunction, buttons, openFunction, closeFunction, builder);
+        super(player, getTitleFunction, buttons, openFunction, closeFunction, builder, captureButton);
     }
 
     @Override
@@ -107,16 +108,16 @@ public class TextMenu extends AbstractMenu {
         }
 
         @Override
-        public TBuilder onClose(@Nonnull BiFunction<Player, Boolean, Result> closeFunction) {
+        public TBuilder onClose(@Nonnull BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
             return (TBuilder) super.onClose(closeFunction);
         }
 
         @Override
-        public TBuilder onClose(@Nonnull Function<Player, Result> closeFunction) {
+        public TBuilder onClose(@Nonnull Function<Player, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
             return (TBuilder) super.onClose(closeFunction);
         }
 
-        public TBuilder onComplete(@Nonnull TriFunction<Player, String, TBuilder, Result> completeFunction) {
+        public TBuilder onComplete(@Nonnull TriFunction<Player, String, TBuilder, BiConsumer<AbstractMenu, InventoryClickEvent>> completeFunction) {
             return (TBuilder) this.button(SLOT_OUTPUT, new Button.Builder()
                     .lmb((interact) -> completeFunction.apply(interact.player,
                             Util.def(ItemBuilder.mut(interact.clickedItem).getName(), ""), (TBuilder) interact.menuBuilder))
@@ -205,6 +206,11 @@ public class TextMenu extends AbstractMenu {
         }
 
         @Override
+        public TBuilder capture(Button.Builder button) {
+            return (TBuilder) super.capture(button);
+        }
+
+        @Override
         public TextMenu open(@Nonnull Player player) {
             HashMap<Integer, Button> btns = new HashMap<>();
             buttons.forEach((i, b) -> btns.put(i, b.get()));
@@ -217,7 +223,9 @@ public class TextMenu extends AbstractMenu {
                                              btns,
                                              openFunction,
                                              closeFunction,
-                                             this);
+                                             this,
+                                             captureButton
+                    );
 
             textMenu.openInventory(true);
 
