@@ -138,19 +138,11 @@ public abstract class AbstractMenu {
                         event.getCurrentItem(),
                         event.isShiftClick(),
                         event.getHotbarButton(), // -1 if not NUMBER_KEY
+                        event.getClick(),
                         builder
                 );
 
-        if (event.isLeftClick() && button.leftClickFunction != null)
-            return button.leftClickFunction.apply(e);
-        else if (event.isRightClick() && button.rightClickFunction != null)
-            return button.rightClickFunction.apply(e);
-        else if (event.getClick() == ClickType.MIDDLE && button.middleClickFunction != null)
-            return button.middleClickFunction.apply(e);
-        else if (event.getClick() == ClickType.NUMBER_KEY && button.numberKeyFunction != null)
-            return button.numberKeyFunction.apply(e);
-        else
-            return Result.ok();
+        return button.clickFunction.apply(e);
     }
 
     final void invokeResult(InventoryClickEvent event, @Nullable BiConsumer<AbstractMenu, InventoryClickEvent> result) {

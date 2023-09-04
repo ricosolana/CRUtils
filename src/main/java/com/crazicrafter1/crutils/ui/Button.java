@@ -2,9 +2,11 @@ package com.crazicrafter1.crutils.ui;
 
 import org.apache.commons.lang3.Validate;
 import org.bukkit.entity.Player;
+import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
+import java.util.EnumMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
@@ -14,8 +16,9 @@ public class Button {
         public Player player;
         public ItemStack heldItem;
         public ItemStack clickedItem;
-        public boolean shift;
+        public boolean shift; // TODO remove
         public int numberKeySlot;
+        public final ClickType clickType;
         public final AbstractMenu.Builder menuBuilder;
 
         public Event(Player player,
@@ -23,63 +26,65 @@ public class Button {
                      ItemStack clickedItem,
                      boolean shift,
                      int numberKeySlot,
+                     ClickType clickType,
                      AbstractMenu.Builder menuBuilder) {
             this.player = player;
             this.heldItem = heldItem;
             this.clickedItem = clickedItem;
             this.shift = shift;
             this.numberKeySlot = numberKeySlot;
+            this.clickType = clickType;
             this.menuBuilder = menuBuilder;
         }
     }
 
     Function<Player, ItemStack> getItemStackFunction;
-    final Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> leftClickFunction;
-    final Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> middleClickFunction;
-    final Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickFunction;
-    final Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> numberKeyFunction;
+    final Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> clickFunction;
 
     Button(Function<Player, ItemStack> getItemStackFunction,
-           Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> leftClickFunction,
-           Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> middleClickFunction,
-           Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickFunction,
-           Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> numberKeyFunction) {
+           Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> clickFunction) {
         this.getItemStackFunction = getItemStackFunction;
-        this.leftClickFunction = leftClickFunction;
-        this.middleClickFunction = middleClickFunction;
-        this.rightClickFunction = rightClickFunction;
-        this.numberKeyFunction = numberKeyFunction;
+        this.clickFunction = clickFunction;
     }
 
     public static class Builder {
         Function<Player, ItemStack> getItemStackFunction;
-        Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> leftClickFunction;
-        Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> middleClickFunction;
-        Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickFunction;
-        Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> numberKeyFunction;
+
+        Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> clickFunction = e -> Result.ok();
 
         public Builder icon(Function<Player, ItemStack> getItemStackFunction) {
             this.getItemStackFunction = getItemStackFunction;
             return this;
         }
 
+        /**
+         * Function that is called everytime this button is interacted with
+         * @param clickFunction the listener
+         * @return this
+         */
+        public Builder click(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> clickFunction) {
+            this.clickFunction = clickFunction;
+            return this;
+        }
+
         public Builder lmb(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> leftClickFunction) {
-            this.leftClickFunction = leftClickFunction;
+            // TODO this is causing deep recursion
+            this.clickFunction = e -> e.clickType.isLeftClick() ? leftClickFunction.apply(e) : clickFunction.apply(e);
             return this;
         }
 
         public Builder mmb(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> middleClickFunction) {
-            this.middleClickFunction = middleClickFunction;
+            this.clickFunction = e -> e.clickType == ClickType.MIDDLE ? middleClickFunction.apply(e) : clickFunction.apply(e);
             return this;
         }
 
         public Builder rmb(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickFunction) {
-            this.rightClickFunction = rightClickFunction;
+            this.clickFunction = e -> e.clickType.isRightClick() ? rightClickFunction.apply(e) : clickFunction.apply(e);
             return this;
         }
 
         public Builder num(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> numberKeyFunction) {
-            this.numberKeyFunction = numberKeyFunction;
+            this.clickFunction = e -> e.clickType == ClickType.NUMBER_KEY ? numberKeyFunction.apply(e) : clickFunction.apply(e);
             return this;
         }
 
@@ -140,11 +145,7 @@ public class Button {
         }
 
         public Button get() {
-            return new Button(getItemStackFunction,
-                              leftClickFunction,
-                              middleClickFunction,
-                              rightClickFunction,
-                              numberKeyFunction);
+            return new Button(getItemStackFunction, clickFunction);
         }
     }
 }
