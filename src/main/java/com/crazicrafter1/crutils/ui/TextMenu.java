@@ -124,7 +124,10 @@ public class TextMenu extends AbstractMenu {
             );
         }
 
-
+        @Override
+        public TBuilder parentOnClose() {
+            return (TBuilder) super.parentOnClose();
+        }
 
         /**
          * Set left item text. Defaults to ColorMode.STRIP

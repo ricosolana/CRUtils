@@ -58,8 +58,8 @@ public abstract class AbstractMenu {
                  Builder builder,
                  @Nullable Button.Builder captureButton
     ) {
-        Validate.notNull(player, "Player cannot be null");
-        Validate.notNull(getTitleFunction);
+        Validate.notNull(player, "Player is null");
+        Validate.notNull(getTitleFunction, "Title function is null");
 
         this.player = player;
 
@@ -181,6 +181,15 @@ public abstract class AbstractMenu {
     }
 
     public static abstract class Builder {
+        // TODO how to implement animations?
+        //  like moving stuff over ticks?
+        //  this is where things would start to move towards dynamic
+        //  graphics and flutter-like rendering...
+        //  ---
+        //  this is a simple minecraft menu plugin, ...
+        //  going any further would start to break what I have set
+        //  everything is currently based off events, not deferred updates...
+
         Function<Player, String> getTitleFunction;
         HashMap<Integer, Button.Builder> buttons = new HashMap<>();
         public Builder parentMenuBuilder;

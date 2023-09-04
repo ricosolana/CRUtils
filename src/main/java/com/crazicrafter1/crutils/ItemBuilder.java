@@ -375,6 +375,7 @@ public class ItemBuilder implements ConfigurationSerializable {
         return meta(meta);
     }
 
+    // TODO add a static method to get an immediate skull (without specifying PLAYER_HEAD)
     /**
      * Apply skull data to this
      * @param base64 {@link String}
@@ -678,6 +679,7 @@ public class ItemBuilder implements ConfigurationSerializable {
         return this;
     }
 
+    // TODO make this method static? rocket vs star
     /**
      * Apply firework effect to this
      * @param effect the effect

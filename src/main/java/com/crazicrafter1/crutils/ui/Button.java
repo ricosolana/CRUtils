@@ -44,6 +44,7 @@ public class Button {
 
     Button(Function<Player, ItemStack> getItemStackFunction,
            EnumMap<ClickType, Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>>> functionMap) {
+        // TODO warn on null Item function
         this.getItemStackFunction = getItemStackFunction;
         this.functionMap = functionMap;
     }
