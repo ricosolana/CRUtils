@@ -123,16 +123,16 @@ public class SimpleMenu extends AbstractMenu {
         public SBuilder childButton(int x, int y,
                                     Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen,
                                     Function<Button.Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickListener) {
-
             return this.childButton(x, y, getItemStackFunction, menuToOpen, rightClickListener, true);
         }
 
         public SBuilder childButton(int x, int y,
-                                    Function<Player, ItemStack> getItemStackFunction, Builder builder, boolean addCondition) {
+                                    Function<Player, ItemStack> getItemStackFunction,
+                                    Builder builder,
+                                    boolean addCondition) {
             if (addCondition) {
-                builder.parent(this);
-
-                return this.bind(x, y, EnumPress.LMB, getItemStackFunction, builder);
+                this.getOrMakeButton(x, y, getItemStackFunction)
+                                .child(this, builder);
             }
             return this;
         }
@@ -141,11 +141,9 @@ public class SimpleMenu extends AbstractMenu {
                                     Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen,
                                     Function<Button.Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickListener, boolean addCondition) {
             if (addCondition) {
-                menuToOpen.parent(this);
-
                 return this.button(x, y, new Button.Builder()
                         .icon(getItemStackFunction)
-                        .bind(menuToOpen, EnumPress.LMB)
+                        .child(menuToOpen, this)
                         .rmb(rightClickListener));
             }
             return this;
@@ -182,24 +180,14 @@ public class SimpleMenu extends AbstractMenu {
                     .lmb((clickEvent) -> Result.parent()));
         }
 
-        /**
-         * Attach a menu to a button on {@link EnumPress} being invoked
-         * @param x horizontal position
-         * @param y vertical position
-         * @param press bind to which event
-         * @param getItemStackFunction button icon lambda
-         * @param menuToOpen the menu to open on press
-         * @return this
-         */
-        public SBuilder bind(int x, int y,
-                             EnumPress press,
-                             Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen) {
-            menuToOpen.parent(this);
-
-            this.getOrMakeButton(x, y, getItemStackFunction)
-                    .bind(menuToOpen, press);
-            return this;
-        }
+        //public SBuilder bind(int x, int y,
+        //                     EnumPress press,
+        //                     Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen) {
+        //    menuToOpen.parent(this);
+        //    this.getOrMakeButton(x, y, getItemStackFunction)
+        //            .bind(menuToOpen, press);
+        //    return this;
+        //}
 
         final Button.Builder getOrMakeButton(int x, int y, Function<Player, ItemStack> getItemStackFunction) {
             return super.getOrMakeButton(slotOf(x, y), getItemStackFunction);

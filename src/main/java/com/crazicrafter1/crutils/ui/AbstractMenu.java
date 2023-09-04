@@ -142,7 +142,10 @@ public abstract class AbstractMenu {
                         builder
                 );
 
-        return button.clickFunction.apply(e);
+        Function<Button.Event, BiConsumer<AbstractMenu, InventoryClickEvent>> function = button.functionMap.get(event.getClick());
+        if (function == null) function = button.functionMap.get(ClickType.UNKNOWN);
+
+        return function != null ? function.apply(e) : Result.ok();
     }
 
     final void invokeResult(InventoryClickEvent event, @Nullable BiConsumer<AbstractMenu, InventoryClickEvent> result) {
@@ -185,7 +188,10 @@ public abstract class AbstractMenu {
 
         BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction;
 
+        // TODO use @function instead of Button for capture
         Button.Builder captureButton;
+
+        //Function<Button.Event, BiConsumer<AbstractMenu, InventoryClickEvent>>
 
         public Builder title(String staticTitle) {
             return this.title(p -> staticTitle);

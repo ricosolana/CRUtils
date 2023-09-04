@@ -265,11 +265,6 @@ public final class ListMenu extends SimpleMenu {
         }
 
         @Override
-        public LBuilder bind(int x, int y, EnumPress press, Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen) {
-            return (LBuilder) super.bind(x, y, press, getItemStackFunction, menuToOpen);
-        }
-
-        @Override
         public LBuilder capture(Button.Builder button) {
             return (LBuilder) super.capture(button);
         }

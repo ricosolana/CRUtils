@@ -6,6 +6,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.ItemStack;
 
+import javax.annotation.Nonnull;
 import java.util.EnumMap;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -39,21 +40,36 @@ public class Button {
     }
 
     Function<Player, ItemStack> getItemStackFunction;
-    final Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> clickFunction;
+    final EnumMap<ClickType, Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>>> functionMap;
 
     Button(Function<Player, ItemStack> getItemStackFunction,
-           Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> clickFunction) {
+           EnumMap<ClickType, Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>>> functionMap) {
         this.getItemStackFunction = getItemStackFunction;
-        this.clickFunction = clickFunction;
+        this.functionMap = functionMap;
     }
 
     public static class Builder {
         Function<Player, ItemStack> getItemStackFunction;
+        final EnumMap<ClickType, Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>>> functionMap = new EnumMap<>(ClickType.class);
 
-        Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> clickFunction = e -> Result.ok();
-
+        /**
+         * Set the icon for this button
+         * @param getItemStackFunction
+         * @return
+         */
         public Builder icon(Function<Player, ItemStack> getItemStackFunction) {
             this.getItemStackFunction = getItemStackFunction;
+            return this;
+        }
+
+        /**
+         * Trigger a function on a specific click
+         * @param clickType
+         * @param func
+         * @return
+         */
+        public Builder bind(ClickType clickType, Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> func) {
+            functionMap.put(clickType, func);
             return this;
         }
 
@@ -63,89 +79,53 @@ public class Button {
          * @return this
          */
         public Builder click(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> clickFunction) {
-            this.clickFunction = clickFunction;
-            return this;
+            return bind(ClickType.UNKNOWN, clickFunction);
         }
 
         public Builder lmb(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> leftClickFunction) {
-            // TODO this is causing deep recursion
-            this.clickFunction = e -> e.clickType.isLeftClick() ? leftClickFunction.apply(e) : clickFunction.apply(e);
-            return this;
+            bind(ClickType.LEFT, leftClickFunction);
+            return bind(ClickType.SHIFT_LEFT, leftClickFunction);
         }
 
         public Builder mmb(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> middleClickFunction) {
-            this.clickFunction = e -> e.clickType == ClickType.MIDDLE ? middleClickFunction.apply(e) : clickFunction.apply(e);
-            return this;
+            return bind(ClickType.MIDDLE, middleClickFunction);
         }
 
         public Builder rmb(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickFunction) {
-            this.clickFunction = e -> e.clickType.isRightClick() ? rightClickFunction.apply(e) : clickFunction.apply(e);
-            return this;
+            bind(ClickType.RIGHT, rightClickFunction);
+            return bind(ClickType.SHIFT_RIGHT, rightClickFunction);
         }
 
         public Builder num(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> numberKeyFunction) {
-            this.clickFunction = e -> e.clickType == ClickType.NUMBER_KEY ? numberKeyFunction.apply(e) : clickFunction.apply(e);
-            return this;
+            return bind(ClickType.NUMBER_KEY, numberKeyFunction);
         }
 
         /**
-         * Attach an {@link AbstractMenu.Builder} to this button to open on
-         * the specified {@link EnumPress}
-         * @param menuToOpen the menu to open
-         * @param press which press
+         * Opens a menu on click.
+         * @param menuToOpen menu to open
+         * @param press ClickType
          * @return this
          */
-        public Builder bind(AbstractMenu.Builder menuToOpen,
-                            EnumPress press) {
+        private Builder route(@Nonnull AbstractMenu.Builder menuToOpen,
+                              ClickType press) {
             Validate.notNull(menuToOpen, "Supplied menu must not be null");
 
-            return this.append(press, (clickEvent) -> Result.open(menuToOpen));
+            return this.bind(press, (clickEvent) -> Result.open(menuToOpen));
         }
 
         /**
-         * Bind a menu to LMB, and assign parent menu
+         * Opens a child menu on LMB. This becomes revisitable.
          * @param parentBuilder the parent menu
          * @param menuToOpen the menu to open
          * @return this
          */
         public Builder child(AbstractMenu.Builder parentBuilder, AbstractMenu.Builder menuToOpen) {
-            Validate.notNull(parentBuilder);
-
             menuToOpen.parent(parentBuilder);
-            return bind(menuToOpen, EnumPress.LMB);
-        }
-
-        public Builder child(AbstractMenu.Builder parentBuilder,
-                             AbstractMenu.Builder menuToOpen,
-                             Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickListener) {
-
-            Validate.notNull(parentBuilder);
-
-            menuToOpen.parent(parentBuilder);
-            append(EnumPress.RMB, rightClickListener);
-            return bind(menuToOpen, EnumPress.LMB);
-        }
-
-        /**
-         * Combine button presses to listeners
-         * @param press
-         * @param func
-         * @return
-         */
-        public Builder append(EnumPress press, Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> func) {
-            if (press != null)
-                switch (press) {
-                    case LMB: return lmb(func);
-                    case MMB: return mmb(func);
-                    case RMB: return rmb(func);
-                    case NUM: return num(func);
-                }
-
-            throw new NullPointerException("Supplied EnumPress must not be null");
+            return route(menuToOpen, ClickType.LEFT);
         }
 
         public Button get() {
-            return new Button(getItemStackFunction, clickFunction);
+            return new Button(getItemStackFunction, new EnumMap<>(functionMap));
         }
     }
 }
