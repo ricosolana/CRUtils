@@ -74,6 +74,13 @@ public class Button {
             return this;
         }
 
+        public Builder bind(Function<Event, BiConsumer<AbstractMenu, InventoryClickEvent>> func, ClickType... clickTypes) {
+            for (ClickType clickType : clickTypes) {
+                bind(clickType, func);
+            }
+            return this;
+        }
+
         /**
          * Function that is called everytime this button is interacted with
          * @param clickFunction the listener

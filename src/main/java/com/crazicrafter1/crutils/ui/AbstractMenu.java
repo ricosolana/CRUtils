@@ -30,12 +30,12 @@ public abstract class AbstractMenu {
         CLOSED,
     }
 
+    // TODO this doesn't work as expected
     public static void closeAllMenus() {
         openMenus.forEach((uuid, menu) -> menu.closeInventory());
     }
 
-    final static HashMap<UUID, AbstractMenu> openMenus =
-            new HashMap<>();
+    final static Map<UUID, AbstractMenu> openMenus = new HashMap<>();
 
     final Player player;
 
