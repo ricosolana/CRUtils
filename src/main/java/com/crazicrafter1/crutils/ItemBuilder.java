@@ -9,6 +9,7 @@ import org.apache.commons.lang3.text.WordUtils;
 import org.bukkit.*;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 import org.bukkit.enchantments.Enchantment;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
@@ -33,6 +34,8 @@ public class ItemBuilder implements ConfigurationSerializable {
 
     private static final BiMap<String, Enchantment> ENCHANTMENTS = HashBiMap.create();
     private static final BiMap<String, PotionEffectType> EFFECTS = HashBiMap.create();
+
+    private static final String PLAYER_HEAD = "PLAYER_HEAD";
 
     static {
         for (Field field : Enchantment.class.getDeclaredFields()) {
@@ -198,6 +201,21 @@ public class ItemBuilder implements ConfigurationSerializable {
     }
 
     /**
+     * Construct a firework star with a FireworkEffect
+     * @param effect the effect
+     * @return new instance
+     */
+    public static ItemBuilder fromStar(FireworkEffect effect) {
+        return ItemBuilder.from("FIREWORK_STAR").star(effect);
+    }
+
+    public static ItemBuilder fromSkull(@Nonnull String base64) {
+        return ItemBuilder.from(PLAYER_HEAD).skull(base64);
+    }
+
+
+
+    /**
      * Return a copy of this
      * @return {@link ItemBuilder} copy
      */
@@ -276,7 +294,7 @@ public class ItemBuilder implements ConfigurationSerializable {
         }
 
         if (((flags & FLAG_SKULL) == FLAG_SKULL) && getMeta() instanceof SkullMeta)
-            skull(ItemBuilder.from("PLAYER_HEAD").meta(other).getSkull());
+            skull(ItemBuilder.from(PLAYER_HEAD).meta(other).getSkull());
 
         return this;
     }
@@ -375,7 +393,6 @@ public class ItemBuilder implements ConfigurationSerializable {
         return meta(meta);
     }
 
-    // TODO add a static method to get an immediate skull (without specifying PLAYER_HEAD)
     /**
      * Apply skull data to this
      * @param base64 {@link String}
@@ -389,7 +406,7 @@ public class ItemBuilder implements ConfigurationSerializable {
     }
 
     /**
-     * Set the CustomModelData of this
+     * Set the CustomModelData of @this
      * Fails silently on versions before 1.14.4
      * @param i data
      * @return {@link ItemBuilder} copy
@@ -679,18 +696,23 @@ public class ItemBuilder implements ConfigurationSerializable {
         return this;
     }
 
-    // TODO make this method static? rocket vs star
     /**
-     * Apply firework effect to this
+     * Apply a Firework Effect to this Firework Star
      * @param effect the effect
-     * @return {@link ItemBuilder} copy
+     * @return this
      */
     @Nonnull
-    public ItemBuilder fireworkEffect(FireworkEffect effect) {
+    public ItemBuilder star(FireworkEffect effect) {
         FireworkEffectMeta meta = (FireworkEffectMeta) getMeta();
         meta.setEffect(effect);
         itemStack.setItemMeta(meta);
         return this;
+    }
+
+    @Nonnull
+    @Deprecated
+    public ItemBuilder fireworkEffect(FireworkEffect effect) {
+        return star(effect);
     }
 
 
@@ -921,7 +943,7 @@ public class ItemBuilder implements ConfigurationSerializable {
                 //NBT 383, "SPAWN_EGGS...",
                 384, "EXPERIENCE_BOTTLE",
                 386, "WRITABLE_BOOK",
-                397, "SKELETON_SKULL", "WITHER_SKELETON_SKULL", "ZOMBIE_HEAD", "PLAYER_HEAD", "CREEPER_HEAD", "DRAGON_HEAD",
+                397, "SKELETON_SKULL", "WITHER_SKELETON_SKULL", "ZOMBIE_HEAD", PLAYER_HEAD, "CREEPER_HEAD", "DRAGON_HEAD",
                 //NBT 403, "ENCHANTED_BOOKS..."
                 401, "FIREWORK_ROCKET",
                 402, "FIREWORK_STAR",
