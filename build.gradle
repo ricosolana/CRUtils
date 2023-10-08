@@ -40,7 +40,7 @@ configurations {
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:${project.spigot_version}"
-    shadow 'net.wesjd:anvilgui:1.6.6-SNAPSHOT'
+    shadow 'net.wesjd:anvilgui:1.9.0-SNAPSHOT'
     //implementation "com.mojang:authlib:3.16.29" //1.5.21" // http://nathaantfm.alwaysdata.net/explorer/?package=com.mojang&name=authlib
     implementation "com.mojang:authlib:1.5.21"
     compileOnly 'me.clip:PlaceholderAPI:2.11.1'
@@ -64,7 +64,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.withType(Jar) {
-    destinationDirectory = file("C:\\Users\\rico\\Documents\\MinecraftDev\\Servers\\1.20.1 paper\\plugins\\")
+    destinationDirectory = file("C:\\Users\\rico\\Documents\\MinecraftDev\\Servers\\1.20.2 paper\\plugins\\")
     //destinationDirectory = file('C:\\Users\\Rico\\Downloads\\mohist_server_test\\plugins\\')
 }
 

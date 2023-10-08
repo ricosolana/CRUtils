@@ -50,18 +50,18 @@ public class TextMenu extends AbstractMenu {
         WRAPPER.handleInventoryCloseEvent(player);
         WRAPPER.setActiveContainerDefault(player);
 
-        String title = getTitleFunction.apply(player);
+        final Object titleChatComponent = WRAPPER.literalChatComponent(getTitleFunction.apply(player));
 
-        final Object container = WRAPPER.newContainerAnvil(player, title);
+        VersionWrapper.AnvilContainerWrapper container = WRAPPER.newContainerAnvil(player, titleChatComponent);
 
         containerId = WRAPPER.getNextContainerId(player, container);
 
-        WRAPPER.sendPacketOpenWindow(player, containerId, title);
+        WRAPPER.sendPacketOpenWindow(player, containerId, titleChatComponent);
         WRAPPER.setActiveContainer(player, container);
         WRAPPER.setActiveContainerId(container, containerId);
         WRAPPER.addActiveContainerSlotListener(container, player);
 
-        inventory = WRAPPER.toBukkitInventory(container);
+        inventory = container.getBukkitInventory();
 
         super.openInventory(sendOpenPacket);
     }
