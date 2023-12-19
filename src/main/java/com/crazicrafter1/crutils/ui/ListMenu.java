@@ -211,11 +211,11 @@ public final class ListMenu extends SimpleMenu {
         }
 
         @Override
-        public LBuilder childButton(int x, int y, Function<Player, ItemStack> getItemStackFunction, Builder otherMenu) {
+        public LBuilder childButton(int x, int y, Function<Player, ItemStack> getItemStackFunction, Builder lmbMenuToOpen) {
             Validate.isTrue(!(x >= ITEM_X && x <= ITEM_X2 && y >= ITEM_Y && y <= ITEM_Y2),
                     "x, y must not be within center block (" + x + ", " + y + ")");
             Validate.isTrue(!((x == 0 || x == 8) && y == 5), "button must not overlap page buttons");
-            return (LBuilder) super.childButton(x, y, getItemStackFunction, otherMenu);
+            return (LBuilder) super.childButton(x, y, getItemStackFunction, lmbMenuToOpen);
         }
 
         @Override

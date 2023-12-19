@@ -112,38 +112,38 @@ public class SimpleMenu extends AbstractMenu {
          * @param x horizontal position
          * @param y vertical position
          * @param getItemStackFunction button icon
-         * @param builder the menu to eventually open
+         * @param lmbMenuToOpen the menu to eventually open
          * @return this
          */
         public SBuilder childButton(int x, int y,
-                                    Function<Player, ItemStack> getItemStackFunction, Builder builder) {
-            return this.childButton(x, y, getItemStackFunction, builder, true);
+                                    Function<Player, ItemStack> getItemStackFunction, Builder lmbMenuToOpen) {
+            return this.childButton(x, y, getItemStackFunction, lmbMenuToOpen, true);
         }
 
         public SBuilder childButton(int x, int y,
-                                    Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen,
+                                    Function<Player, ItemStack> getItemStackFunction, Builder lmbMenuToOpen,
                                     Function<Button.Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickListener) {
-            return this.childButton(x, y, getItemStackFunction, menuToOpen, rightClickListener, true);
+            return this.childButton(x, y, getItemStackFunction, lmbMenuToOpen, rightClickListener, true);
         }
 
         public SBuilder childButton(int x, int y,
                                     Function<Player, ItemStack> getItemStackFunction,
-                                    Builder builder,
+                                    Builder lmbMenuToOpen,
                                     boolean addCondition) {
             if (addCondition) {
                 this.getOrMakeButton(x, y, getItemStackFunction)
-                                .child(this, builder);
+                                .child(this, lmbMenuToOpen);
             }
             return this;
         }
 
         public SBuilder childButton(int x, int y,
-                                    Function<Player, ItemStack> getItemStackFunction, Builder menuToOpen,
+                                    Function<Player, ItemStack> getItemStackFunction, Builder lmbMenuToOpen,
                                     Function<Button.Event, BiConsumer<AbstractMenu, InventoryClickEvent>> rightClickListener, boolean addCondition) {
             if (addCondition) {
                 return this.button(x, y, new Button.Builder()
                         .icon(getItemStackFunction)
-                        .child(menuToOpen, this)
+                        .child(this, lmbMenuToOpen)
                         .rmb(rightClickListener));
             }
             return this;
@@ -177,7 +177,7 @@ public class SimpleMenu extends AbstractMenu {
 
             return this.button(x, y, new Button.Builder()
                     .icon(getItemStackFunction)
-                    .lmb((clickEvent) -> Result.parent()));
+                    .lmb(event -> Result.parent()));
         }
 
         //public SBuilder bind(int x, int y,
@@ -190,7 +190,7 @@ public class SimpleMenu extends AbstractMenu {
         //}
 
         final Button.Builder getOrMakeButton(int x, int y, Function<Player, ItemStack> getItemStackFunction) {
-            return super.getOrMakeButton(slotOf(x, y), getItemStackFunction);
+            return super.getOrMakeButton(this.slotOf(x, y), getItemStackFunction);
         }
 
         // Get pitch
@@ -210,6 +210,7 @@ public class SimpleMenu extends AbstractMenu {
             return (SBuilder) super.capture(button);
         }
 
+        @Override
         public SimpleMenu open(Player player) {
             HashMap<Integer, Button> btns = new HashMap<>();
             buttons.forEach((i, b) -> btns.put(i, b.get()));
