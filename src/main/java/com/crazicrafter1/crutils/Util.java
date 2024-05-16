@@ -26,7 +26,7 @@ import java.util.zip.ZipOutputStream;
 public enum Util {
     ;
 
-    private static final Pattern SEMVER_PATTERN = Pattern.compile("[0-9]+(\\.[0-9]+)+");
+    private static final Pattern SEMVER_PATTERN = Pattern.compile("\\d+(\\.\\d+)+");
 
     public static void give(Player p, ItemStack item) {
         new BukkitRunnable() {
@@ -113,12 +113,15 @@ public enum Util {
     }
 
     public static boolean outdatedSemver(String baseVersion, String otherVersion) {
+        return compareSemver(baseVersion, otherVersion) < 0;
+    }
+
+    public static int compareSemver(String baseVersion, String otherVersion) {
         if (baseVersion.equals(otherVersion))
-            return false;
+            return 0;
 
         Matcher baseMatcher = SEMVER_PATTERN.matcher(baseVersion);
         Matcher otherMatcher = SEMVER_PATTERN.matcher(otherVersion);
-        //if (baseMatcher.matches() && otherMatcher.matches()) {
         if (baseMatcher.find() && otherMatcher.find()) {
             baseVersion = baseVersion.substring(baseMatcher.start(), baseMatcher.end());
             otherVersion = otherVersion.substring(otherMatcher.start(), otherMatcher.end());
@@ -135,13 +138,14 @@ public enum Util {
 
             for (int i = 0; i < baseSemver.size(); i++) {
                 if (baseSemver.get(i) < otherSemver.get(i)) {
-                    return true;
+                    return -1;
                 } else if (baseSemver.get(i) > otherSemver.get(i)) {
-                    return false;
+                    return 1;
                 }
             }
         }
-        return false;
+
+        throw new RuntimeException("Invalid semver format");
     }
 
     // TODO untested
@@ -170,30 +174,15 @@ public enum Util {
         return profile;
     }
 
-    //final static Class<?> CLASS_EntityPlayer = ReflectionUtil.getNMClass("level.EntityPlayer");
     static Class<?> CLASS_CraftPlayer;
-    static Method METHOD_getHandle;// = ReflectionUtil.getMethod(CLASS_EntityPlayer, "getHandle");
+    static Method METHOD_getHandle;
     static Class<?> CLASS_EntityPlayer;
-    static Field FIELD_playerConnection;
-    static Class<?> CLASS_PlayerConnection;
-    //static Class<?> CLASS_Packet;
-    static Method METHOD_sendPacket;
-    static Class<?> CLASS_PacketPlayOutPlayerInfo;
-
-    static Class<?> CLASS_EnumPlayerInfoAction;
-    static Object ENUM_REMOVE_PLAYER;
-    static Object ENUM_ADD_PLAYER;
 
     static {
         try {
             CLASS_CraftPlayer = ReflectionUtil.getCraftBukkitClass("entity.CraftPlayer");
             METHOD_getHandle = ReflectionUtil.getMethod(CLASS_CraftPlayer, "getHandle");
             CLASS_EntityPlayer = METHOD_getHandle.getReturnType();
-            FIELD_playerConnection = ReflectionUtil.findField(CLASS_EntityPlayer, "PlayerConnection");
-            // get the PlayerConnection
-            CLASS_PlayerConnection = FIELD_playerConnection.getType();
-            //CLASS_Packet = ReflectionUtil.getNMClass("");
-            //METHOD_sendPacket = ReflectionUtil.getMethod(CLASS_PlayerConnection, "sendPacket", CLASS_Packet);
         } catch (Exception e) {
             e.printStackTrace();
         }

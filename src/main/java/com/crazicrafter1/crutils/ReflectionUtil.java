@@ -15,26 +15,19 @@ public enum ReflectionUtil {
     private final static String CRAFT_BUKKIT = Bukkit.getServer().getClass().getPackage().getName();
     //private final static String NET_MINECRAFT;
 
+    // Bukkit.getVersion()
+    //git-Paper-78 (MC: 1.20.6)
+
+    // Bukkit.getBukkitVersion()
+    //1.20.6-R0.1-SNAPSHOT
+
     // org\bukkit\craftbukkit\v1_8_R3\
     // equals: v1_8_R3
-    final static String VERSION = CRAFT_BUKKIT.substring(CRAFT_BUKKIT.lastIndexOf(".")+1);
-    final static int VERSION_MAJOR = Integer.parseInt(VERSION.substring(1, VERSION.indexOf("_R")).split("_")[1]);
+    //final static String VERSION = CRAFT_BUKKIT.substring(CRAFT_BUKKIT.lastIndexOf(".")+1);
 
-    static {
-        // CrashReport remains consistent in root package across versions
+    //public final static String VERSION = Bukkit.getBukkitVersion().substring(0, Bukkit.getBukkitVersion().indexOf("-"));
 
-        // net\minecraft\server\v1_8_R3\CrashReport
-        // net\minecraft\server\v1_14_R1\CrashReport
-        // net\minecraft\CrashReport
-        //Class<?> crashReport;
-        //try {
-        //    crashReport = ReflectionUtil.getCanonicalClass(
-        //            "net.minecraft.server." + VERSION + ".CrashReport");
-        //} catch (Exception e) {
-        //    crashReport = ReflectionUtil.getCanonicalClass("net.minecraft.CrashReport");
-        //}
-        //NET_MINECRAFT = crashReport.getPackage().getName();
-    }
+    //final static String VERSION =  Bukkit.getBukkitVersion().substring(0, Bukkit.getBukkitVersion().indexOf("-"));
 
     // get class by package dir
     public static Class<?> getCanonicalClass(final String canonicalName) {

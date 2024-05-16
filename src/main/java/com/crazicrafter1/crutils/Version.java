@@ -1,5 +1,8 @@
 package com.crazicrafter1.crutils;
 
+import org.bukkit.Bukkit;
+
+@SuppressWarnings("unused")
 public enum Version {
     // Version is at least
     AT_LEAST_v1_8,
@@ -13,6 +16,7 @@ public enum Version {
     AT_LEAST_v1_16,
     AT_LEAST_v1_17,
     AT_LEAST_v1_18,
+    AT_LEAST_v1_20_5, // nbt changes... ('tag' key was replaced with 'components')
 
     // Version is at most
     AT_MOST_v1_8,
@@ -48,19 +52,21 @@ public enum Version {
     Version() {
         int cmp = cmp();
         if (name().startsWith("AT_LEAST")) {
-            active = cmp >= 0;
-        } else if (name().startsWith("AT_MOST")) {
             active = cmp <= 0;
+        } else if (name().startsWith("AT_MOST")) {
+            active = cmp >= 0;
         } else {
             String[] split = name().substring(name().indexOf('v')+1).split("_");
             if (split.length != 3) {
                 active = cmp == 0;
             } else {
                 // exact 3 version parsing
-                active = ReflectionUtil.VERSION.equals(name());
+                active = Bukkit.getBukkitVersion().equals(name());
             }
         }
     }
+
+
 
     /**
      * Compares a bukkit version against this version
@@ -71,13 +77,16 @@ public enum Version {
      * @return signed difference
      */
     private int cmp() {
-        String[] split = name().substring(name().indexOf('v')+1).split("_");
-        int major = Integer.parseInt(split[1]);
-        //int minor = Integer.parseInt(split[2]);
-        return ReflectionUtil.VERSION_MAJOR - major;
+        return Util.compareSemver(toString(), Bukkit.getBukkitVersion());
     }
 
     public boolean a() {
         return active;
+    }
+
+    @Override
+    public String toString() {
+        String name = name();
+        return name.substring(name.indexOf("v") + 1).replace("_", ".");
     }
 }

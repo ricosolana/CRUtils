@@ -64,7 +64,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.withType(Jar) {
-    destinationDirectory = file("C:\\Users\\rico\\Documents\\MinecraftDev\\Servers\\lc-paper-1.20.4\\plugins\\")
+    destinationDirectory = file("${System.getProperty('user.home')}/Downloads/paper_1.20.6/plugins/")
 }
 
 shadowJar {
