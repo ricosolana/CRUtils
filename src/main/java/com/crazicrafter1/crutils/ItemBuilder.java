@@ -16,6 +16,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.profile.PlayerProfile;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
@@ -26,7 +27,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-@SuppressWarnings({"UnusedReturnValue", "unused"})
+@SuppressWarnings({"UnusedReturnValue", "unused", "unchecked"})
 public class ItemBuilder implements ConfigurationSerializable {
 
     static final Class<?> CLASS_CraftMetaSkull = ReflectionUtil.getCraftBukkitClass("inventory.CraftMetaSkull");
@@ -401,6 +402,8 @@ public class ItemBuilder implements ConfigurationSerializable {
     @Nonnull
     public ItemBuilder skull(@Nonnull String base64) {
         SkullMeta meta = (SkullMeta) getMeta();
+        // TODO look into setOwner with OfflinePlayer (avoid reflections)
+        //meta.setOwningPlayer(...);
         ReflectionUtil.setFieldInstance(FIELD_profile, meta, Util.makeGameProfile(base64));
         return meta(meta);
     }

@@ -30,6 +30,9 @@ repositories {
         name = 'codemc'
         url = 'https://repo.codemc.io/repository/maven-snapshots/'
     }
+    maven {
+        url = 'https://repo.extendedclip.com/content/repositories/placeholderapi/'
+    }
     maven { url "https://jitpack.io" }
 }
 
@@ -40,10 +43,10 @@ configurations {
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:${project.spigot_version}"
-    shadow 'net.wesjd:anvilgui:1.9.3-SNAPSHOT'
+    shadow 'net.wesjd:anvilgui:1.9.6-SNAPSHOT'
     //implementation "com.mojang:authlib:3.16.29" //1.5.21" // http://nathaantfm.alwaysdata.net/explorer/?package=com.mojang&name=authlib
     implementation "com.mojang:authlib:1.5.21"
-    compileOnly 'me.clip:PlaceholderAPI:2.11.1'
+    compileOnly 'me.clip:placeholderapi:2.11.6'
     implementation 'org.apache.commons:commons-lang3:3.12.0'
 }
 
@@ -64,7 +67,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.withType(Jar) {
-    destinationDirectory = file("${System.getProperty('user.home')}/Downloads/paper_1.20.6/plugins/")
+    destinationDirectory = file("${System.getProperty('user.home')}/Downloads/paper_1.21/plugins/")
 }
 
 shadowJar {
