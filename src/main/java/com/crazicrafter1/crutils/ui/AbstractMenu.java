@@ -202,6 +202,7 @@ public abstract class AbstractMenu {
 
         //Function<Button.Event, BiConsumer<AbstractMenu, InventoryClickEvent>>
 
+        @Deprecated
         public Builder title(String staticTitle) {
             return this.title(p -> staticTitle);
         }

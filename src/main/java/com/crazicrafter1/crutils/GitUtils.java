@@ -204,7 +204,7 @@ public enum GitUtils {
         new BukkitRunnable() {
             @Override
             public void run() {
-                callback.accept(b, (s == null || s.length() == 0)
+                callback.accept(b, (s == null || s.isEmpty())
                         ? null
                         : s);
             }
