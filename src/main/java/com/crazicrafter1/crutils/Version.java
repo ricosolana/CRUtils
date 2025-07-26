@@ -16,6 +16,7 @@ public enum Version {
     AT_LEAST_v1_16,
     AT_LEAST_v1_17,
     AT_LEAST_v1_18,
+    AT_LEAST_v1_19,
     AT_LEAST_v1_20_5, // nbt changes... ('tag' key was replaced with 'components')
 
     // Version is at most
@@ -30,6 +31,7 @@ public enum Version {
     AT_MOST_v1_16,
     AT_MOST_v1_17,
     AT_MOST_v1_18,
+    AT_MOST_v1_19,
 
     // Version equals
     v1_8,
@@ -43,6 +45,7 @@ public enum Version {
     v1_16,
     v1_17,
     v1_18,
+    v1_19,
     //v1_18_R1,
     //v1_18_R2,
     ;

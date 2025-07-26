@@ -1,5 +1,6 @@
 package com.crazicrafter1.crutils;
 
+import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import org.bukkit.plugin.Plugin;

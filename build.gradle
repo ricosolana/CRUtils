@@ -43,7 +43,7 @@ configurations {
 
 dependencies {
     compileOnly "org.spigotmc:spigot-api:${project.spigot_version}"
-    shadow 'net.wesjd:anvilgui:1.10.2-SNAPSHOT'
+    shadow 'net.wesjd:anvilgui:1.10.8-SNAPSHOT'
     //implementation "com.mojang:authlib:3.16.29" //1.5.21" // http://nathaantfm.alwaysdata.net/explorer/?package=com.mojang&name=authlib
     implementation "com.mojang:authlib:1.5.21"
     compileOnly 'me.clip:placeholderapi:2.11.6'
@@ -67,7 +67,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.withType(Jar) {
-    destinationDirectory = file("${System.getProperty('user.home')}/MinecraftDev/paper_1.21.1/plugins/")
+    destinationDirectory = file("${System.getProperty('user.home')}/MCDev/servers/paper-1.21.8/plugins/")
 }
 
 shadowJar {

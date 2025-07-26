@@ -163,6 +163,8 @@ public enum Util {
     }
 
     public static GameProfile makeGameProfile(String b64) {
+
+
         // random uuid based on the b64 string
         UUID id = new UUID(
                 b64.substring(b64.length() - 20).hashCode(),

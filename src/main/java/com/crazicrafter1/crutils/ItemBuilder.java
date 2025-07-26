@@ -2,6 +2,8 @@ package com.crazicrafter1.crutils;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.mojang.authlib.GameProfile;
 import me.clip.placeholderapi.PlaceholderAPI;
 import org.apache.commons.lang3.Validate;
@@ -17,11 +19,13 @@ import org.bukkit.inventory.meta.*;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.profile.PlayerProfile;
+import org.bukkit.profile.PlayerTextures;
 
 import javax.annotation.CheckReturnValue;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
+import java.net.URL;
 import java.util.*;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -404,7 +408,43 @@ public class ItemBuilder implements ConfigurationSerializable {
         SkullMeta meta = (SkullMeta) getMeta();
         // TODO look into setOwner with OfflinePlayer (avoid reflections)
         //meta.setOwningPlayer(...);
-        ReflectionUtil.setFieldInstance(FIELD_profile, meta, Util.makeGameProfile(base64));
+        //final ItemStack head = new ItemStack(Material.PLAYER_HEAD);
+
+        //https://www.spigotmc.org/threads/custom-head-textures-%E2%80%94-solved.663443/
+
+        // appears that added in 1.18.1 according to DOCS
+        //  so, largely experimental, but at this point, who cares, mojang switching method signatures
+        //  every fkn update make kermit..
+        if (Version.AT_LEAST_v1_19.a()) {
+            final UUID uuid = UUID.randomUUID();
+            final PlayerProfile playerProfile = Bukkit.createPlayerProfile(uuid, uuid.toString().substring(0, 16));
+            //playerProfile.setTextures(PlayerTextures("textures", textures));
+
+            // {"textures":{"SKIN":{"url":"http://textures.minecraft.net/texture/18a444c8e88fd3ae193c5e0d486274c5cb76701bbf395784d9031510657aec8f"}}}
+
+            PlayerTextures textures = playerProfile.getTextures();
+
+            URL url;
+            try {
+                String json_string = new String(Base64.getDecoder().decode(base64));
+                String url_string = JsonParser.parseString(json_string).getAsJsonObject()
+                        .getAsJsonObject("textures")
+                        .getAsJsonObject("SKIN")
+                        .getAsJsonPrimitive("url")
+                        .getAsString();
+
+                url = new URL(url_string);
+            } catch (Exception e) {
+                // fk
+                throw new RuntimeException(e);
+            }
+
+            textures.setSkin(url);
+
+            meta.setOwnerProfile(playerProfile);
+        } else {
+            ReflectionUtil.setFieldInstance(FIELD_profile, meta, Util.makeGameProfile(base64));
+        }
         return meta(meta);
     }
 
