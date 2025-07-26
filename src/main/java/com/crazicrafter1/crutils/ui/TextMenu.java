@@ -67,11 +67,11 @@ public class TextMenu extends AbstractMenu {
     }
 
     @Override
-    void closeInventory(boolean sendClosePacket) {
+    void closeInventory(boolean sendClosePacket, boolean discrete) {
         if (status != Status.OPEN)
             return;
 
-        if (sendClosePacket) {
+        if (sendClosePacket && !discrete) {
             WRAPPER.handleInventoryCloseEvent(player);
             WRAPPER.setActiveContainerDefault(player);
             WRAPPER.sendPacketCloseWindow(player, containerId);

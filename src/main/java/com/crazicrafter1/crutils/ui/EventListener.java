@@ -17,25 +17,32 @@ public class EventListener implements Listener {
     }
 
     @EventHandler
-    public void event(InventoryClickEvent event) {
+    private void event(InventoryClickEvent event) {
         AbstractMenu menu = AbstractMenu.openMenus.get(event.getWhoClicked().getUniqueId());
 
         if (menu != null) {
+            // Cancel double clicks, because they are just too destructive and complicated to handle
             if (event.getClick() == ClickType.DOUBLE_CLICK) {
                 event.setCancelled(true);
                 return;
             }
 
+            // Performing a direct '==' check doesn't work, because spigot == dumb
             //if (event.getClickedInventory() != menu.inventory)
-            if (!menu.inventory.equals(event.getClickedInventory()))
+            if (!menu.inventory.equals(event.getClickedInventory())) {
+                // Player can shift-click items INTO menu, which is bad
+                if (event.isShiftClick()) {
+                    event.setCancelled(true);
+                }
                 return;
+            }
 
             menu.onInventoryClick(event);
         }
     }
 
     @EventHandler
-    public void event(InventoryCloseEvent event) {
+    private void event(InventoryCloseEvent event) {
         AbstractMenu menu = AbstractMenu.openMenus.get(event.getPlayer().getUniqueId());
 
         // If the event is stupid
@@ -47,11 +54,12 @@ public class EventListener implements Listener {
     }
 
     @EventHandler
-    public void event(InventoryDragEvent event) {
+    private void event(InventoryDragEvent event) {
         Player p = (Player) event.getWhoClicked();
 
         AbstractMenu menu = AbstractMenu.openMenus.get(p.getUniqueId());
         if (menu != null) {
+            // Mainly for performing a selective drag event (allow, but under supervision)
             if (event.getInventory().equals(menu.inventory))
                 menu.onInventoryDrag(event);
         }

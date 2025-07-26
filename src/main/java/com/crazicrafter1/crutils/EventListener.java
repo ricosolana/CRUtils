@@ -26,9 +26,7 @@ public class EventListener implements Listener {
      *
      */
     @EventHandler(priority = EventPriority.HIGHEST)
-    public void event(InventoryDragEvent e) {
-        Player p = (Player)e.getWhoClicked();
-
+    private void fixStupidFuckingDragEvent(InventoryDragEvent e) {
         if (Version.AT_LEAST_v1_16.a()) {
             if (e.getRawSlots().size() == 1) {
                 int rawSlot = 0;

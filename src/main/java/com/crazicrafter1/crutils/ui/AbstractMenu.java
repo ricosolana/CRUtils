@@ -32,7 +32,7 @@ public abstract class AbstractMenu {
 
     // TODO this doesn't work as expected
     public static void closeAllMenus() {
-        openMenus.forEach((uuid, menu) -> menu.closeInventory());
+        openMenus.forEach((uuid, menu) -> menu.closeInventory(false, true));
     }
 
     final static Map<UUID, AbstractMenu> openMenus = new HashMap<>();
@@ -89,10 +89,16 @@ public abstract class AbstractMenu {
     }
 
     final void closeInventory() {
-        closeInventory(true);
+        closeInventory(true, false);
     }
 
-    void closeInventory(boolean sendClosePacket) {
+    final void closeInventory(boolean sendClosePacket) {
+        closeInventory(sendClosePacket, false);
+    }
+
+    // 'discrete' is for server stop, so onClose() functions can run,
+    //  and do potentially important stuff like save data, if set...
+    void closeInventory(boolean sendClosePacket, boolean discrete) {
         if (status == Status.REROUTING) {
             // The close was caused by a new menu opening
             if (closeFunction != null) //                      player did NOT request
@@ -111,9 +117,13 @@ public abstract class AbstractMenu {
                 player.closeInventory();
 
             // The close was directly caused by the player
-            if (closeFunction != null)
+            if (closeFunction != null) {
+                var result = closeFunction.apply(player, true);
                 //                                              player did request
-                invokeResult(null, closeFunction.apply(player, true));
+                if (!discrete) {
+                    invokeResult(null, result);
+                }
+            }
         }
     }
 
