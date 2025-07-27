@@ -2,6 +2,7 @@ package com.crazicrafter1.crutils.ui;
 
 import com.crazicrafter1.crutils.ColorUtil;
 import com.crazicrafter1.crutils.ItemBuilder;
+import com.crazicrafter1.crutils.Main;
 import com.crazicrafter1.crutils.MathUtil;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Material;
@@ -34,27 +35,20 @@ public final class ListMenu extends SimpleMenu {
 
     private int page = 1;
 
-    private final BiFunction<LBuilder, Player, List<Button>> orderedButtonsFunc;
-    private final boolean async;
-
     private List<Button> orderedButtons = new ArrayList<>();
     //public List<Button> subset = new ArrayList<>();
 
     private ListMenu(Player player,
-                     Function<Player, String> getTitleFunction,
                      HashMap<Integer, Button> buttons,
-                     Consumer<Player> openFunction,
-                     BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction,
                      Builder thisBuilder,
-                     @Nullable Button.Builder captureButton,
-                     ItemStack background,
-                     BiFunction<LBuilder, Player, List<Button>> orderedButtonsFunc,
-                     boolean async
+                     @Nullable Button.Builder captureButton
     ) {
-        super(player, getTitleFunction, buttons, openFunction, closeFunction, thisBuilder, captureButton, background, 6);
-        //this.orderedButtons = orderedButtons;
-        this.orderedButtonsFunc = orderedButtonsFunc;
-        this.async = async;
+        super(player, buttons, thisBuilder, captureButton);
+    }
+
+    @Override
+    protected LBuilder getBuilder() {
+        return (LBuilder) builder;
     }
 
     /**
@@ -64,12 +58,13 @@ public final class ListMenu extends SimpleMenu {
      */
     @Override
     void openInventory(boolean sendOpenPacket) {
-        if (async) {
+        var builder = getBuilder();
+        if (builder.async) {
             new BukkitRunnable() {
                 @Override
                 public void run() {
                     try {
-                        List<Button> inner = orderedButtonsFunc.apply((LBuilder) builder, player);
+                        List<Button> inner = builder.orderedButtonsFunc.apply(builder, player);
 
                         new BukkitRunnable() {
                             @Override
@@ -80,13 +75,13 @@ public final class ListMenu extends SimpleMenu {
                                     placeButtons();
                                 }
                             }
-                        }.runTaskLater(com.crazicrafter1.crutils.Main.getInstance(), 0);
+                        }.runTaskLater(Main.getInstance(), 0);
 
                     } catch (Exception e) {e.printStackTrace();}
                 }
-            }.runTaskAsynchronously(com.crazicrafter1.crutils.Main.getInstance());
+            }.runTaskAsynchronously(Main.getInstance());
         } else {
-            this.orderedButtons = orderedButtonsFunc.apply((LBuilder) builder, player);
+            this.orderedButtons = builder.orderedButtonsFunc.apply(builder, player);
             rePage();
         }
 
@@ -227,10 +222,10 @@ public final class ListMenu extends SimpleMenu {
             return (LBuilder) super.button(x, y, button);
         }
 
-        @Override
-        public LBuilder onOpen(Consumer<Player> openFunction) {
-            return (LBuilder) super.onOpen(openFunction);
-        }
+        //@Override
+        //public LBuilder onOpen(Consumer<Player> openFunction) {
+        //    return (LBuilder) super.onOpen(openFunction);
+        //}
 
         @Override
         public LBuilder onClose(BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
@@ -275,15 +270,9 @@ public final class ListMenu extends SimpleMenu {
             buttons.forEach((i, b) -> btns.put(i, b.get()));
 
             ListMenu menu = new ListMenu(player,
-                                         getTitleFunction,
                                          btns,
-                                         openFunction,
-                                         closeFunction,
                                          this,
-                                         captureButton,
-                                         background,
-                                         orderedButtonsFunc,
-                                         async);
+                                         captureButton);
 
             menu.openInventory(true);
 

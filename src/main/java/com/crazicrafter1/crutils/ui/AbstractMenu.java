@@ -1,6 +1,7 @@
 package com.crazicrafter1.crutils.ui;
 
 import com.crazicrafter1.crutils.ColorUtil;
+import com.crazicrafter1.crutils.Main;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -19,14 +20,17 @@ import java.util.Objects;
 import java.util.UUID;
 import java.util.function.BiConsumer;
 import java.util.function.BiFunction;
-import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 public abstract class AbstractMenu {
 
     enum Status {
         OPEN,
-        REROUTING,
+        PUSH,
+        POP,
+        CLOSE_REQUESTED, // Result.close() used
+        CLOSE_NO_POP, // Result.
         CLOSED,
     }
 
@@ -38,41 +42,38 @@ public abstract class AbstractMenu {
     final static Map<UUID, AbstractMenu> openMenus = new HashMap<>();
 
     final Player player;
-
-    final Function<Player, String> getTitleFunction;
     final HashMap<Integer, Button> buttons;
-    final Consumer<Player> openFunction;
-    final BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction;
     final Builder builder;
 
+    // TODO do not use a 'BUTTON'
     final Button captureButton; // called prior to any other buttons; can cancel other buttons
 
     Inventory inventory;
     Status status;
 
     AbstractMenu(Player player,
-                 Function<Player, String> getTitleFunction,
                  HashMap<Integer, Button> buttons,
-                 Consumer<Player> openFunction,
-                 BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction,
                  Builder builder,
+                // TODO remove capture as BUTTON (make as independent)
                  @Nullable Button.Builder captureButton
     ) {
-        Validate.notNull(player, "Player is null");
-        Validate.notNull(getTitleFunction, "Title function is null");
+        Validate.notNull(player);
 
         this.player = player;
-
-        this.getTitleFunction = getTitleFunction;
         this.buttons = buttons;
-        this.openFunction = openFunction;
-        this.closeFunction = closeFunction;
         this.builder = builder;
         this.captureButton = captureButton != null ? captureButton.get() : null;
     }
 
+    protected AbstractMenu.Builder getBuilder() {
+        return builder;
+    }
+
     void openInventory(boolean sendOpenPacket) {
         placeButtons();
+
+        // TODO should trigger push here
+        //Main.notifier.debug("AbstractMenu openInv: " + status);
 
         openMenus.put(player.getUniqueId(), this);
         this.status = Status.OPEN;
@@ -99,12 +100,27 @@ public abstract class AbstractMenu {
     // 'discrete' is for server stop, so onClose() functions can run,
     //  and do potentially important stuff like save data, if set...
     void closeInventory(boolean sendClosePacket, boolean discrete) {
-        if (status == Status.REROUTING) {
+        // POP_ROUTE generally means this was triggered, not directly by player
+        Main.notifier.debug("AbstractMenu::closeInventory(), " + sendClosePacket + ", " + status.name());
+
+        var popFunction = builder.navSelfPoppedFunction;
+
+        if (status == Status.POP) {
             // The close was caused by a new menu opening
-            if (closeFunction != null) //                      player did NOT request
-                invokeResult(null, closeFunction.apply(player, false));
+            if (popFunction != null) {
+                Main.notifier.debug("route pop");
+                invokeResult(null, popFunction.apply(player, false));
+            }
         }
-        else if (status == Status.OPEN) { // first iteration
+        // otherwise, no explicit popping was requested
+        //  (player pressed 'esc', and there was no parent onClose requested)
+        //  !!! BUT !!!
+        //      we still need to trigger onNavPops for ALL submenus,
+        //      we just won't reopen them to player...
+        else if (status != Status.CLOSED) { // first iteration
+            // TODO might change to
+            var prevStatus = status;
+
             status = Status.CLOSED;
 
             /*
@@ -116,12 +132,57 @@ public abstract class AbstractMenu {
             if (sendClosePacket)
                 player.closeInventory();
 
+            if (prevStatus == Status.CLOSE_NO_POP || prevStatus == ) {
+                // dont do anything
+                Main.notifier.debug("abort");
+                return;
+            }
+
             // The close was directly caused by the player
-            if (closeFunction != null) {
-                var result = closeFunction.apply(player, true);
-                //                                              player did request
+            BiConsumer<AbstractMenu, InventoryClickEvent> res = null;
+
+            if (popFunction != null) {
+                Main.notifier.debug("force pop");
+
+                res = popFunction.apply(player, true);
                 if (!discrete) {
-                    invokeResult(null, result);
+                    invokeResult(null, res);
+                }
+            }
+
+            // in 99% of cases, a NONNULL res means 'Result.parent()'
+            //  otherwise, we *should* error-out
+            //  If no result, panic call all POPs
+            if (res == null) {
+                Main.notifier.debug("non-res");
+
+                int max_depth = 10;
+
+                // invoke parent pops,
+                AbstractMenu.Builder parent = builder;
+                while (true) {
+                    parent = parent.parentMenuBuilder;
+                    if (parent == null) {
+                        // If we are the lsat menu left, we already popped
+                        break;
+                    }
+
+                    Main.notifier.debug("parent " + parent);
+
+                    var parentPopFunc = parent.navSelfPoppedFunction;
+                    if (parentPopFunc != null) {
+                        var resParent = parentPopFunc.apply(player, true);
+
+                        Main.notifier.debug("parent onPopped");
+                        // We do not really do anything with result,
+                        //  if we are just popping up the chain...
+                    }
+
+                    // recurse protection
+                    //  this shouldn't really happen, but safety...
+                    if (max_depth-- <= 0) {
+                        break;
+                    }
                 }
             }
         }
@@ -177,7 +238,9 @@ public abstract class AbstractMenu {
     void onInventoryClose(InventoryCloseEvent event) {
         closeInventory(false);
 
-        if (status != Status.REROUTING) {
+        //Main.getInstance().no
+
+        if (status != Status.POP) {
             openMenus.remove(player.getUniqueId());
         }
     }
@@ -203,14 +266,18 @@ public abstract class AbstractMenu {
         Function<Player, String> getTitleFunction;
         HashMap<Integer, Button.Builder> buttons = new HashMap<>();
         public Builder parentMenuBuilder;
-        Consumer<Player> openFunction;
 
-        BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction;
+        // Fired on 'self' when 'other' menu is pushed ('self' becomes parent)
+        //Consumer<Player> navPushRouteFunction;
+        // Fired on 'self' when I am pushed ('self' becomes child)
+        //Consumer<Player> navSelfPushedFunction;
+        // Fired on 'self' when other menu is popped
+        //BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> navPopRouteFunction;
+        // Fired on 'self' when I am popped
+        BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> navSelfPoppedFunction;
 
         // TODO use @function instead of Button for capture
         Button.Builder captureButton;
-
-        //Function<Button.Event, BiConsumer<AbstractMenu, InventoryClickEvent>>
 
         @Deprecated
         public Builder title(String staticTitle) {
@@ -233,10 +300,10 @@ public abstract class AbstractMenu {
          * @param openFunction the open function
          * @return this
          */
-        public Builder onOpen(Consumer<Player> openFunction) {
-            this.openFunction = openFunction;
-            return this;
-        }
+        //@Deprecated
+        //public Builder onOpen(Consumer<Player> openFunction) {
+        //    return this.onNavPush(openFunction);
+        //}
 
         /**
          * Execute a function on close
@@ -245,21 +312,71 @@ public abstract class AbstractMenu {
          * @param closeFunction the runnable
          * @return this
          */
+        @Deprecated
         public Builder onClose(BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
-            Validate.notNull(closeFunction);
-            this.closeFunction = closeFunction;
-            return this;
+            return onNavPop(closeFunction);
         }
 
+        @Deprecated
         public Builder onClose(Function<Player, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
-            Validate.notNull(closeFunction);
-            this.closeFunction = (p, request) -> closeFunction.apply(p);
+            return onNavPop(closeFunction);
+        }
+
+        // TODO
+        //  flutter-like navigator control
+
+        // Push: A child menu is created
+        //public Builder onNavPush(Consumer<Player> pushFunction) {
+        //    //return onClose((p, request) -> closeFunction.apply(p));
+        //    Validate.notNull(pushFunction);
+        //    this.navSelfPushedFunction = pushFunction;
+        //    return this;
+        //}
+
+        // Pop: We nav to parent
+        public Builder onNavPop(BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> popFunction) {
+            Validate.notNull(popFunction);
+            this.navSelfPoppedFunction = popFunction;
             return this;
         }
 
+        public Builder onNavPop(Function<Player, BiConsumer<AbstractMenu, InventoryClickEvent>> popFunction) {
+            return onNavPop((p, request) -> popFunction.apply(p));
+        }
+
+        public Builder onNavPop(Supplier<BiConsumer<AbstractMenu, InventoryClickEvent>> supplier) {
+            //Supplier<BiConsumer<AbstractMenu, InventoryClickEvent>> grabSupplier = Result::grab;;
+            //Validate.isTrue(supplier != grabSupplier, "Hey dummy, this makes NO sense!");
+            return onNavPop((p, req) -> supplier.get());
+        }
+
+        @Deprecated
         public Builder parentOnClose() {
-            onClose(p -> Result.parent());
-            return this;
+            return popOnClose();
+            //return onClose(p -> Result.parent());
+        }
+
+        //private void composite()
+
+        public Builder popOnClose() {
+            return onNavPop(Result::pop);
+            //return onNavPop((p, req) -> Result.pop());
+            //return onClose(p -> Result.parent());
+            // TODO
+            //  what are we trying to do here?
+            //
+            //  popping / pushing both refer to sub menu navigation and escaping
+            //      but by default, sub menus do not exist
+            //var inner_func = this.navSelfPoppedFunction;
+            //if (inner_func != null) {
+            //    navSelfPoppedFunction = (player, request) -> {
+            //        var res = inner_func.apply(player, request);
+            //        // If the initial onPop calls do nothing, then give it a try:
+            //        return Objects.requireNonNullElseGet(res, Result::parent);
+            //    };
+            //}
+
+            //return this;
         }
 
         /**
@@ -268,6 +385,7 @@ public abstract class AbstractMenu {
          * @param builder the parent
          * @return this
          */
+        @Deprecated
         /// fixme too tacky open-ended usage
         public final Builder parent(@Nonnull Builder builder) {
             Validate.notNull(builder);

@@ -32,33 +32,39 @@ public class TextMenu extends AbstractMenu {
     private int containerId;
 
     private TextMenu(Player player,
-                     Function<Player, String> getTitleFunction,
                      HashMap<Integer, Button> buttons,
-                     Consumer<Player> openFunction,
-                     BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction,
                      Builder builder,
                      @Nullable Button.Builder captureButton
     ) {
-        super(player, getTitleFunction, buttons, openFunction, closeFunction, builder, captureButton);
+        super(player, buttons, builder, captureButton);
+    }
+
+    @Override
+    protected TBuilder getBuilder() {
+        return (TBuilder) builder;
     }
 
     @Override
     void openInventory(boolean sendOpenPacket) {
-        if (openFunction != null)
-            openFunction.accept(player);
+        var builder = getBuilder();
+
+        //var pushFunction = builder.navSelfPushedFunction;
+        //if (pushFunction != null) {
+        //    pushFunction.accept(player);
+        //}
 
         WRAPPER.handleInventoryCloseEvent(player);
         WRAPPER.setActiveContainerDefault(player);
 
-        final Object titleChatComponent = WRAPPER.literalChatComponent(getTitleFunction.apply(player));
+        final Object titleChatComponent = WRAPPER.literalChatComponent(builder.getTitleFunction.apply(player));
 
         VersionWrapper.AnvilContainerWrapper container = WRAPPER.newContainerAnvil(player, titleChatComponent);
 
         this.containerId = WRAPPER.getNextContainerId(player, container);
 
-        WRAPPER.sendPacketOpenWindow(player, containerId, titleChatComponent);
+        WRAPPER.sendPacketOpenWindow(player, this.containerId, titleChatComponent);
         WRAPPER.setActiveContainer(player, container);
-        WRAPPER.setActiveContainerId(container, containerId);
+        WRAPPER.setActiveContainerId(container, this.containerId);
         WRAPPER.addActiveContainerSlotListener(container, player);
 
         inventory = container.getBukkitInventory();
@@ -102,10 +108,10 @@ public class TextMenu extends AbstractMenu {
             return (TBuilder) super.title(getTitleFunction, titleColorMode);
         }
 
-        @Override
-        public TBuilder onOpen(@Nonnull Consumer<Player> openFunction) {
-            return (TBuilder) super.onOpen(openFunction);
-        }
+        //@Override
+        //public TBuilder onOpen(@Nonnull Consumer<Player> openFunction) {
+        //    return (TBuilder) super.onOpen(openFunction);
+        //}
 
         @Override
         public TBuilder onClose(@Nonnull BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
@@ -222,10 +228,7 @@ public class TextMenu extends AbstractMenu {
             Validate.isTrue(buttons.containsKey(SLOT_LEFT), "Must assign left item to text menu");
 
             TextMenu textMenu = new TextMenu(player,
-                                             getTitleFunction,
                                              btns,
-                                             openFunction,
-                                             closeFunction,
                                              this,
                                              captureButton
                     );

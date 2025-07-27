@@ -17,21 +17,20 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class SimpleMenu extends AbstractMenu {
-    private final ItemStack background;
-    private final int columns;
+    //private final ItemStack background;
+    //private final int columns;
 
     SimpleMenu(Player player,
-               Function<Player, String> getTitleFunction,
                HashMap<Integer, Button> buttons,
-               Consumer<Player> openFunction,
-               BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction,
                Builder thisBuilder,
-               @Nullable Button.Builder captureButton,
-               ItemStack background,
-               int columns) {
-        super(player, getTitleFunction, buttons, openFunction, closeFunction, thisBuilder, captureButton);
-        this.background = background;
-        this.columns = columns;
+               @Nullable Button.Builder captureButton) {
+        //super(player, getTitleFunction, buttons, openFunction, navPushFunction, navPopFunction, thisBuilder, captureButton);
+        super(player, buttons, thisBuilder, captureButton);
+    }
+
+    @Override
+    protected SBuilder getBuilder() {
+        return (SBuilder) builder;
     }
 
     @Override
@@ -50,18 +49,30 @@ public class SimpleMenu extends AbstractMenu {
 
     @Override
     void openInventory(boolean sendOpenPacket) {
-        if (openFunction != null) {
-            openFunction.accept(player);
-        }
+        var builder = getBuilder();
 
+        //var openFunction = builder.openFunction
+        //var pushFunction = builder.navSelfPushedFunction;
+        //if (pushFunction != null) {
+        //    pushFunction.accept(player);
+        //}
+
+        //var parent = builder.parentMenuBuilder;
+        //if (parent != null) {
+        //    // we have PUSHED
+        //}
+
+
+        // TODO could I put this after the inventory contents assign?
         if (sendOpenPacket) {
-            this.inventory = Bukkit.createInventory(null, columns * 9, getTitleFunction.apply(player));
+            this.inventory = Bukkit.createInventory(null, getBuilder().columns * 9, builder.getTitleFunction.apply(player));
             player.openInventory(inventory);
         }
 
-        if (background != null) {
+        var bkg = builder.background;
+        if (bkg != null) {
             for (int i = 0; i < inventory.getSize(); i++) {
-                inventory.setItem(i, background);
+                inventory.setItem(i, bkg);
             }
         }
 
@@ -73,7 +84,7 @@ public class SimpleMenu extends AbstractMenu {
         private static final ItemStack BACKGROUND_1 = ItemBuilder.from("BLACK_STAINED_GLASS_PANE").name(" ").build();
 
         ItemStack background;
-        private final int columns;
+        final int columns;
 
         public SBuilder(int columns) {
             Validate.isTrue(columns >= 1, "columns must be greater or equal to 1 (" + columns + ")");
@@ -91,10 +102,10 @@ public class SimpleMenu extends AbstractMenu {
             return (SBuilder) super.title(getTitleFunction, titleColorMode);
         }
 
-        @Override
-        public SBuilder onOpen(Consumer<Player> openFunction) {
-            return (SBuilder) super.onOpen(openFunction);
-        }
+        //@Override
+        //public SBuilder onOpen(Consumer<Player> openFunction) {
+        //    return (SBuilder) super.onOpen(openFunction);
+        //}
 
         @Override
         public SBuilder onClose(BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
@@ -104,6 +115,17 @@ public class SimpleMenu extends AbstractMenu {
         @Override
         public SBuilder onClose(Function<Player, BiConsumer<AbstractMenu, InventoryClickEvent>> closeFunction) {
             return (SBuilder) super.onClose(closeFunction);
+        }
+
+        //@Override
+        //public SBuilder onNavPush(BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> pushFunction) {
+        //    return (SBuilder) super.onNavPush(pushFunction);
+        //}
+
+        @Override
+        // Pop: We nav to parent
+        public SBuilder onNavPop(BiFunction<Player, Boolean, BiConsumer<AbstractMenu, InventoryClickEvent>> popFunction) {
+            return (SBuilder) super.onNavPop(popFunction);
         }
 
         /**
@@ -216,14 +238,9 @@ public class SimpleMenu extends AbstractMenu {
             buttons.forEach((i, b) -> btns.put(i, b.get()));
 
             SimpleMenu menu = new SimpleMenu(player,
-                                             getTitleFunction,
                                              btns,
-                                             openFunction,
-                                             closeFunction,
                                              this,
-                                             captureButton,
-                                             background,
-                                             columns);
+                                             captureButton);
 
             menu.openInventory(true);
 

@@ -127,6 +127,10 @@ public class Button {
          * @param menuToOpen the menu to open
          * @return this
          */
+        // TODO
+        //  parent menu should be assigned when button added to menu
+        //      AKA internal, not manually by end-user
+        @Deprecated
         public Builder child(AbstractMenu.Builder parentBuilder, AbstractMenu.Builder menuToOpen) {
             menuToOpen.parent(parentBuilder);
             return route(menuToOpen, ClickType.LEFT);

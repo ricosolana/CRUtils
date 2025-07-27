@@ -2,6 +2,7 @@ package com.crazicrafter1.crutils.ui;
 
 import com.crazicrafter1.crutils.ColorUtil;
 import com.crazicrafter1.crutils.ItemBuilder;
+import com.crazicrafter1.crutils.Main;
 import org.apache.commons.lang3.Validate;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.scheduler.BukkitRunnable;
@@ -14,6 +15,15 @@ import java.util.function.BiConsumer;
 public enum Result {
     ;
 
+    // Push new nav menu
+    //public static BiConsumer<AbstractMenu, InventoryClickEvent> push(AbstractMenu.Builder builder) {
+    //    return (menu, e) -> {
+    //        // TODO set mode to PUSH
+    //        menu.status = AbstractMenu.Status.PUSH_ROUTE;
+    //        builder.open(menu.player);
+    //    };
+    //}
+
     // Allow the player to equip the item onto their cursor
     public static BiConsumer<AbstractMenu, InventoryClickEvent> grab() {
         return (menu, e) -> {
@@ -24,23 +34,47 @@ public enum Result {
 
     // Open a menu by MenuBuilder
     public static BiConsumer<AbstractMenu, InventoryClickEvent> open(AbstractMenu.Builder builder) {
-        return (menu, e) -> builder.open(menu.player);
+        return (menu, e) -> {
+            // TODO wha..?
+            //menu.status = AbstractMenu.Status.PUSH;
+            builder.open(menu.player);
+        };
+    }
+
+    public static BiConsumer<AbstractMenu, InventoryClickEvent> abort() {
+        return (menu, e) -> {
+            // panic out
+            //  which means just DO NOT call sub closes
+            menu.status = AbstractMenu.Status.CLOSE_NO_POP;
+            menu.closeInventory(true);
+        };
     }
 
     // Close the currently opened menu
     public static BiConsumer<AbstractMenu, InventoryClickEvent> close() {
-        return (menu, e) -> menu.closeInventory(true);
+        return (menu, e) -> {
+            // graceful
+            menu.status = AbstractMenu.Status.CLOSE_REQUESTED;
+            menu.closeInventory(true);
+        };
+    }
+
+    @Deprecated
+    public static BiConsumer<AbstractMenu, InventoryClickEvent> parent() {
+        return pop();
     }
 
     // Open the parent menu of the current menu
-    public static BiConsumer<AbstractMenu, InventoryClickEvent> parent() {
+    public static BiConsumer<AbstractMenu, InventoryClickEvent> pop() {
         return (menu, e) -> new BukkitRunnable() {
             @Override
             public void run() {
-                menu.status = AbstractMenu.Status.REROUTING;
+                Main.notifier.debug("Result trigger: parent");
+                menu.status = AbstractMenu.Status.POP;
                 menu.builder.parentMenuBuilder.open(menu.player);
+                Main.notifier.debug("Result post p");
             }
-        }.runTaskLater(com.crazicrafter1.crutils.Main.getInstance(), 0);
+        }.runTaskLater(Main.getInstance(), 0);
     }
 
     // Regenerate elements in the current menu
@@ -51,7 +85,7 @@ public enum Result {
                 menu.inventory.clear();
                 menu.openInventory(false);
             }
-        }.runTaskLater(com.crazicrafter1.crutils.Main.getInstance(), 0);
+        }.runTaskLater(Main.getInstance(), 0);
     }
 
     // Edits the text within the left slot of a text/anvil menu
