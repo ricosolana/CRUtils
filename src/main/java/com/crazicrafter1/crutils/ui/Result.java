@@ -16,7 +16,10 @@ public enum Result {
 
     // Allow the player to equip the item onto their cursor
     public static BiConsumer<AbstractMenu, InventoryClickEvent> grab() {
-        return (menu, e) -> e.setCancelled(false);
+        return (menu, e) -> {
+            Validate.notNull(e, "Do not return '::grab' inside ::onNavPop()!");
+            e.setCancelled(false);
+        };
     }
 
     // Open a menu by MenuBuilder

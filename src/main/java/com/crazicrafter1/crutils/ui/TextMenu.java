@@ -54,7 +54,7 @@ public class TextMenu extends AbstractMenu {
 
         VersionWrapper.AnvilContainerWrapper container = WRAPPER.newContainerAnvil(player, titleChatComponent);
 
-        containerId = WRAPPER.getNextContainerId(player, container);
+        this.containerId = WRAPPER.getNextContainerId(player, container);
 
         WRAPPER.sendPacketOpenWindow(player, containerId, titleChatComponent);
         WRAPPER.setActiveContainer(player, container);

@@ -12,6 +12,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.plugin.messaging.StandardMessenger;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class Notifier {
@@ -29,6 +30,7 @@ public class Notifier {
 
     private final String format;
     private final String perm;
+    private final boolean debug;
 
     //private static class NotifyListener implements Listener {
     //    public ArrayList<String> messages = new ArrayList<>();
@@ -47,9 +49,18 @@ public class Notifier {
     //    }
     //}
 
-    public Notifier(@Nonnull String format, @Nonnull String perm) {
+    public Notifier(@Nonnull String format, @Nullable String perm, boolean debug) {
         this.format = format;
         this.perm = perm;
+        this.debug = debug;
+    }
+
+    public Notifier(@Nonnull String format, @Nullable String perm) {
+        this(format, perm, false);
+    }
+
+    public Notifier(@Nonnull String format) {
+        this(format, null);
     }
 
     private void send(@Nonnull CommandSender sender, @Nonnull String message, @Nonnull String prefixColor, @Nonnull String messageColor) {
@@ -62,6 +73,10 @@ public class Notifier {
     }
 
 
+
+    public void debug(@Nonnull String message) {
+        debug(Bukkit.getConsoleSender(), message);
+    }
 
     public void info(@Nonnull String message) {
         info(Bukkit.getConsoleSender(), message);
@@ -76,6 +91,12 @@ public class Notifier {
     }
 
 
+
+    public void debug(@Nonnull CommandSender sender, @Nonnull String message) {
+        if (debug) {
+            send(sender, message, ChatColor.GOLD.toString(), ChatColor.YELLOW.toString());
+        }
+    }
 
     public void info(@Nonnull CommandSender sender, @Nonnull String message) {
         send(sender, message, ChatColor.BLUE.toString(), ChatColor.GRAY.toString());
@@ -115,11 +136,24 @@ public class Notifier {
         return true;
     }
 
-
-
-    public void globalWarn(@Nonnull String message) {
+    public void warnAll(@Nonnull String message) {
         warn(message);
-        Bukkit.getOnlinePlayers().forEach(p -> { if (p.hasPermission(perm)) warn(p, message); });
+        Bukkit.getOnlinePlayers().forEach(p -> {
+            if (perm != null) {
+                if (p.hasPermission(perm)) {
+                    warn(p, message);
+                }
+            } else {
+                if (p.isOp()) {
+                    warn(p, message);
+                }
+            }
+        });
+    }
+
+    @Deprecated
+    public void globalWarn(@Nonnull String message) {
+        warnAll(message);
     }
 
 
