@@ -67,7 +67,7 @@ tasks.withType(JavaCompile).configureEach {
 }
 
 tasks.withType(Jar) {
-    destinationDirectory = file("${System.getProperty('user.home')}/MCDev/servers/paper-1.21.8/plugins/")
+    destinationDirectory = file("${System.getProperty('user.home')}/MCDev/servers/paper-1.21.5/plugins/")
 }
 
 shadowJar {
