@@ -77,7 +77,7 @@ public class TextMenu extends AbstractMenu {
             WRAPPER.sendPacketCloseWindow(player, containerId);
         }
 
-        super.closeInventory(false);
+        super.closeInventory(false, false);
     }
 
     @Override
